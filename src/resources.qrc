@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/prefix">
+        <file>save.svg</file>
+        <file>folder.svg</file>
+        <file>LogoNuevo_color_icono.svg</file>
+        <file>settings-3.svg</file>
+        <file>settings-2.svg</file>
+        <file>add-1.svg</file>
+        <file>edit.svg</file>
+        <file>minus-1.svg</file>
+        <file>handshake.svg</file>
+    </qresource>
+</RCC>
