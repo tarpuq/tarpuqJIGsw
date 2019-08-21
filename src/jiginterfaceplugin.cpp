@@ -1,6 +1,7 @@
 #include "jiginterfaceplugin.h"
 
 #include <QDebug>
+#include <QFile>
 
 JigInterfacePlugin::JigInterfacePlugin()
 {
@@ -19,12 +20,24 @@ JigInterfacePlugin::JigInterfacePlugin()
         this->pluginDone = false;
         this->prvState = Started;
     });
+
+    this->prvState = Off;
 }
 
 int JigInterfacePlugin::open()
 {
     int ans;
+
+    //  Validate path
+    if (!QFile(this->programPath).exists()){
+        qDebug() << "Plugin path doesn't exist" << plugin->errorString();
+        this->prvState = Error;
+        ans = 1;
+        return ans;
+    }
+
     plugin->setArguments(this->arguments);
+    plugin->setProgram(this->programPath);
     plugin->start();
 
     if (plugin->isOpen()) {
@@ -45,7 +58,7 @@ void JigInterfacePlugin::close()
 
 void JigInterfacePlugin::config()
 {
-    plugin->setProgram(parameters["path"].toString());
+    this->programPath = parameters["path"].toString();
 }
 
 bool JigInterfacePlugin::isDone()

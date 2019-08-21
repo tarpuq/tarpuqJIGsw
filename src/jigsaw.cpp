@@ -107,8 +107,14 @@ int JigSaw::readProfile(QByteArray data)
                     }
                     break;
                 case JigInterface::tty:
-                    iface->parameters["vid"] = interfaceObject["vid"].toInt();
-                    iface->parameters["pid"] = interfaceObject["pid"].toInt();
+                    if(!interfaceObject["vid"].toString().isEmpty()){
+                        iface->parameters["vid"] = interfaceObject["vid"].toString();
+                    }
+
+                    if(!interfaceObject["pid"].toString().isEmpty()){
+                        iface->parameters["pid"] = interfaceObject["pid"].toString();
+                    }
+
                     iface->parameters["portName"] = interfaceObject["defaultPortName"].toString();
                     iface->parameters["baudRate"] = interfaceObject["baudRate"].toInt();
                     iface->parameters["dataBits"] = interfaceObject["dataBits"].toInt();
@@ -235,8 +241,8 @@ int JigSaw::writeProfile(QByteArray *data)
             jsonInterfaceObject["type"] = "tty";
 
             if (interface->parameters["isVidPid"].toBool()) {
-                jsonInterfaceObject["vid"] = interface->parameters["vid"].toInt();
-                jsonInterfaceObject["pid"] = interface->parameters["pid"].toInt();
+                jsonInterfaceObject["vid"] = interface->parameters["vid"].toString();
+                jsonInterfaceObject["pid"] = interface->parameters["pid"].toString();
             } else {
                 jsonInterfaceObject["defaultPortName"] = interface->parameters["portName"]
                                                              .toString();

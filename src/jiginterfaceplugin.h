@@ -34,6 +34,7 @@ private:
     QProcess *plugin;
     pluginState prvState;
     bool pluginDone;
+    QString programPath;
 
 };
 

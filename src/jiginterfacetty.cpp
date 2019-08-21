@@ -47,8 +47,8 @@ void JigInterfaceTty::close()
 
 void JigInterfaceTty::config()
 {
-    this->vid = parameters["vid"].toInt();
-    this->pid = parameters["pid"].toInt();
+    this->vid = parameters["vid"].toString().toInt(nullptr,16);
+    this->pid = parameters["pid"].toString().toInt(nullptr,16);
 
     if (parameters["portName"].toString().isEmpty()) {
         this->isVidPid = true;
