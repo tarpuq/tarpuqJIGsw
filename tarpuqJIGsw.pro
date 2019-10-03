@@ -13,33 +13,38 @@ TARGET = tarpuqJIGsw
 TEMPLATE = app
 
 SOURCES += src/main.cpp\
+        src/gtablewidget.cpp \
+        src/jigcommandeditdialog.cpp \
+        src/jiginterfaceeditdialog.cpp \
         src/jiginterfacepickit.cpp \
         src/jiginterfaceplugin.cpp \
         src/jiginterfacetty.cpp \
-        src/jiginterfaceedit.cpp \
         src/jiginterface.cpp \
+        src/jiglogindialog.cpp \
         src/jigsaw.cpp \
+        src/jigsynccommand.cpp \
         src/mainwindow.cpp \
         src/pickit.cpp \
-        src/loraserverapi.cpp \
-        src/jigcommand.cpp \
-        src/jigcommandedit.cpp
+        src/loraserverapi.cpp
 
 HEADERS  += src/mainwindow.h \
+        src/gtablewidget.h \
+        src/jigcommandeditdialog.h \
+        src/jiginterfaceeditdialog.h \
         src/jiginterfacepickit.h \
         src/jiginterfaceplugin.h \
         src/jiginterfacetty.h \
-        src/jiginterfaceedit.h \
         src/jiginterface.h \
+        src/jiglogindialog.h \
         src/jigsaw.h \
+        src/jigsynccommand.h \
         src/pickit.h \
-        src/loraserverapi.h \
-        src/jigcommand.h \
-        src/jigcommandedit.h
+        src/loraserverapi.h
 
 FORMS    += src/mainwindow.ui \
-            src/jiginterfaceedit.ui \
-            src/jigcommandedit.ui
+            src/jigcommandeditdialog.ui \
+            src/jiginterfaceeditdialog.ui \
+            src/jiglogindialog.ui
 
 RESOURCES += \
     src/resources.qrc
@@ -69,3 +74,8 @@ OBJECTS_DIR += $${DEST_DIRECTORY}/generated/objs
 DLLDESTDIR = $${DEST_DIRECTORY}
 DESTDIR    = $${DEST_DIRECTORY}
 
+# The application version
+VERSION = 20191003
+
+# Define the preprocessor macro to get the application version in our application.
+DEFINES += APP_VERSION=\\\"$$VERSION\\\"

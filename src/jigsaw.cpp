@@ -38,7 +38,8 @@ int JigSaw::readProfile(QByteArray data)
 
     QJsonObject json = json_document.object();
 
-    commands.clear();
+    syncCommands.clear();
+    asyncCommands.clear();
     interfaces.clear();
 
     //      Process
@@ -107,11 +108,11 @@ int JigSaw::readProfile(QByteArray data)
                     }
                     break;
                 case JigInterface::tty:
-                    if(!interfaceObject["vid"].toString().isEmpty()){
+                    if (!interfaceObject["vid"].toString().isEmpty()) {
                         iface->parameters["vid"] = interfaceObject["vid"].toString();
                     }
 
-                    if(!interfaceObject["pid"].toString().isEmpty()){
+                    if (!interfaceObject["pid"].toString().isEmpty()) {
                         iface->parameters["pid"] = interfaceObject["pid"].toString();
                     }
 
@@ -135,69 +136,108 @@ int JigSaw::readProfile(QByteArray data)
         configHexPath = configsObject["hexPath"].toString();
     }
 
-    if (json.contains("commands") && json["commands"].isArray()) {
-        QJsonArray commandsArray = json["commands"].toArray();
+    if (json.contains("asyncCommands") && json["asyncCommands"].isArray()) {
+        QJsonArray asyncCommandsArray = json["asyncCommands"].toArray();
 
-        for (arrayIterator = commandsArray.begin(); arrayIterator < commandsArray.end();
+        for (arrayIterator = asyncCommandsArray.begin(); arrayIterator < asyncCommandsArray.end();
              arrayIterator++) {
-            QJsonObject command = arrayIterator->toObject();
+            QJsonObject asyncCommand = arrayIterator->toObject();
 
-            JigCommand *newCommand = new JigCommand(this);
+            JigSyncCommand *newCommand = new JigSyncCommand(this);
 
-            newCommand->setId(command["id"].toString());
-            newCommand->setCodeName(command["ifCodeName"].toString());
-            newCommand->setDescription(command["description"].toString());
-            newCommand->runOnJump = command["runOnJump"].toBool();
-            newCommand->retry = command["retry"].toBool();
-            newCommand->end = command["end"].toBool();
-            newCommand->setTimeOut(command["timeout"].toInt());
-            newCommand->setTimeDelay(command["delay"].toInt());
-            newCommand->setEnabled(command["enabled"].toBool());
+            newCommand->setId(asyncCommand["id"].toString());
+            newCommand->setName(asyncCommand["name"].toString());
+            newCommand->setDescription(asyncCommand["description"].toString());
 
-            newCommand->setInterfaceName(command["ifName"].toString());
-            newCommand->setInterfaceCommand(command["ifCommand"].toString());
-            newCommand->setInterfaceArguments(command["ifParameter"].toString());
-            newCommand->setInterfaceAnswer(command["ifAnswer"].toString());
-
-            newCommand->messageNotice = command["messageNotice"].toString();
-            newCommand->messageOnOk = command["messageOnOk"].toString();
-            newCommand->messageOnError = command["messageOnErr"].toString();
+            newCommand->setInterfaceName(asyncCommand["ifName"].toString());
+            newCommand->setInterfaceCommand(asyncCommand["ifCommand"].toString());
+            newCommand->setInterfaceArguments(asyncCommand["ifParameter"].toString());
+            newCommand->setInterfaceAnswer(asyncCommand["ifAnswer"].toString());
 
             //      USART
-            newCommand->setTxCommand(command["txCommand"].toString());
-            newCommand->setTxArguments(command["txParameter"].toString());
-            newCommand->setRxCommand(command["rxCommand"].toString());
-            newCommand->setRxAnswers(command["rxParameter"].toString());
-            newCommand->setOnOk(command["onOk"].toString());
-            newCommand->setOnError(command["onErr"].toString());
+            newCommand->setTxCommand(asyncCommand["txCommand"].toString());
+            newCommand->setTxArguments(asyncCommand["txParameter"].toString());
 
-            newCommand->setIsCr(command["CR"].toBool());
-            newCommand->setIsLf(command["LF"].toBool());
-            newCommand->setIsCrc16(command["CRC16"].toBool());
-            newCommand->setIsOptional(command["OPT"].toBool());
+            newCommand->setIsCr(asyncCommand["CR"].toBool());
+            newCommand->setIsLf(asyncCommand["LF"].toBool());
+            newCommand->setIsCrc16(asyncCommand["CRC16"].toBool());
+            newCommand->setIsOptional(asyncCommand["OPT"].toBool());
 
-            newCommand->setMeasureParameters(command["mean"].toDouble(),
-                                             command["deviation"].toDouble(),command["offset"].toDouble());
+            if (commandList.indexOf(newCommand->getInterfaceCommand()) < 0) {
+                error = QString("La prueba #%1:\"%2\" contiene un comando que no existe en la "
+                                "tabla de comandos")
+                            .arg(arrayIterator.i + 1)
+                            .arg(newCommand->getName());
+                retCode = -2;
+            }
 
+            asyncCommands << newCommand;
+        }
+    }
 
-            newCommand->setMeanFormula(command["formula"].toString());
+    if (json.contains("syncCommands") && json["syncCommands"].isArray()) {
+        QJsonArray syncCommandsArray = json["syncCommands"].toArray();
+
+        for (arrayIterator = syncCommandsArray.begin(); arrayIterator < syncCommandsArray.end();
+             arrayIterator++) {
+            QJsonObject syncCommand = arrayIterator->toObject();
+
+            JigSyncCommand *newCommand = new JigSyncCommand(this);
+
+            newCommand->setId(syncCommand["id"].toString());
+            newCommand->setName(syncCommand["name"].toString());
+            newCommand->setDescription(syncCommand["description"].toString());
+            newCommand->runOnJump = syncCommand["runOnJump"].toBool();
+            newCommand->retry = syncCommand["retry"].toBool();
+            newCommand->end = syncCommand["end"].toBool();
+            newCommand->setTimeOut(syncCommand["timeout"].toInt());
+            newCommand->setTimeDelay(syncCommand["delay"].toInt());
+            newCommand->setEnabled(syncCommand["enabled"].toBool());
+
+            newCommand->setInterfaceName(syncCommand["ifName"].toString());
+            newCommand->setInterfaceCommand(syncCommand["ifCommand"].toString());
+            newCommand->setInterfaceArguments(syncCommand["ifParameter"].toString());
+            newCommand->setInterfaceAnswer(syncCommand["ifAnswer"].toString());
+
+            newCommand->messageNotice = syncCommand["messageNotice"].toString();
+            newCommand->messageOnOk = syncCommand["messageOnOk"].toString();
+            newCommand->messageOnError = syncCommand["messageOnErr"].toString();
+
+            //      USART
+            newCommand->setTxCommand(syncCommand["txCommand"].toString());
+            newCommand->setTxArguments(syncCommand["txParameter"].toString());
+            newCommand->setRxCommand(syncCommand["rxCommand"].toString());
+            newCommand->setRxAnswers(syncCommand["rxParameter"].toString());
+            newCommand->setOnOk(syncCommand["onOk"].toString());
+            newCommand->setOnError(syncCommand["onErr"].toString());
+
+            newCommand->setIsCr(syncCommand["CR"].toBool());
+            newCommand->setIsLf(syncCommand["LF"].toBool());
+            newCommand->setIsCrc16(syncCommand["CRC16"].toBool());
+            newCommand->setIsOptional(syncCommand["OPT"].toBool());
+
+            newCommand->setMeasureParameters(syncCommand["mean"].toDouble(),
+                                             syncCommand["deviation"].toDouble(),
+                                             syncCommand["offset"].toDouble());
+
+            newCommand->setMeanFormula(syncCommand["formula"].toString());
             if (!newCommand->getMeanFormula().isEmpty()) {
                 newCommand->setUseMeanFormula(true);
             } else {
                 newCommand->setUseMeanFormula(false);
             }
 
-            newCommand->setMeasFormula(command["measFormula"].toString());
+            newCommand->setMeasFormula(syncCommand["measFormula"].toString());
 
             if (commandList.indexOf(newCommand->getInterfaceCommand()) < 0) {
                 error = QString("La prueba #%1:\"%2\" contiene un comando que no existe en la "
                                 "tabla de comandos")
                             .arg(arrayIterator.i + 1)
-                            .arg(newCommand->getCodeName());
+                            .arg(newCommand->getName());
                 retCode = -2;
             }
 
-            commands << newCommand;
+            syncCommands << newCommand;
         }
     }
 
@@ -208,7 +248,8 @@ int JigSaw::writeProfile(QByteArray *data)
 {
     QJsonObject json;
     QJsonArray jsonInterfaces;
-    QJsonArray jsonCommands;
+    QJsonArray jsonSyncCommands;
+    QJsonArray jsonAsyncCommands;
 
     foreach (JigInterface *interface, interfaces) {
         QJsonObject jsonInterfaceObject;
@@ -244,8 +285,7 @@ int JigSaw::writeProfile(QByteArray *data)
                 jsonInterfaceObject["vid"] = interface->parameters["vid"].toString();
                 jsonInterfaceObject["pid"] = interface->parameters["pid"].toString();
             } else {
-                jsonInterfaceObject["defaultPortName"] = interface->parameters["portName"]
-                                                             .toString();
+                jsonInterfaceObject["defaultPortName"] = interface->parameters["portName"].toString();
             }
 
             jsonInterfaceObject["baudRate"] = interface->parameters["baudRate"].toInt();
@@ -258,72 +298,102 @@ int JigSaw::writeProfile(QByteArray *data)
         jsonInterfaces.append(jsonInterfaceObject);
     }
 
-    foreach (JigCommand *cmd, commands) {
-        QJsonObject jsonCmd;
+    foreach (JigSyncCommand *cmd, syncCommands) {
+        QJsonObject jsonSyncCmd;
 
-        jsonCmd["id"] = cmd->getId();
-        jsonCmd["ifCodeName"] = cmd->getCodeName();
-        jsonCmd["description"] = cmd->getDescription();
+        jsonSyncCmd["id"] = cmd->getId();
+        jsonSyncCmd["name"] = cmd->getName();
+        jsonSyncCmd["description"] = cmd->getDescription();
 
-        jsonCmd["ifName"] = cmd->getInterfaceName();
-        jsonCmd["ifCommand"] = cmd->getInterfaceCommand();
+        jsonSyncCmd["ifName"] = cmd->getInterfaceName();
+        jsonSyncCmd["ifCommand"] = cmd->getInterfaceCommand();
         if (!cmd->getInterfaceArguments().isEmpty())
-            jsonCmd["ifParameter"] = cmd->getInterfaceArguments();
+            jsonSyncCmd["ifParameter"] = cmd->getInterfaceArguments();
         if (!cmd->getInterfaceAnswer().isEmpty())
-            jsonCmd["ifAnswer"] = cmd->getInterfaceAnswer();
+            jsonSyncCmd["ifAnswer"] = cmd->getInterfaceAnswer();
 
         if (!cmd->messageNotice.isEmpty())
-            jsonCmd["messageNotice"] = cmd->messageNotice;
+            jsonSyncCmd["messageNotice"] = cmd->messageNotice;
         if (!cmd->messageOnOk.isEmpty())
-            jsonCmd["messageOnOk"] = cmd->messageOnOk;
+            jsonSyncCmd["messageOnOk"] = cmd->messageOnOk;
         if (!cmd->messageOnError.isEmpty())
-            jsonCmd["messageOnErr"] = cmd->messageOnError;
+            jsonSyncCmd["messageOnErr"] = cmd->messageOnError;
 
-        jsonCmd["enabled"] = cmd->getEnabled();
+        jsonSyncCmd["enabled"] = cmd->getEnabled();
         if (cmd->getTimeOut() > 0)
-            jsonCmd["timeout"] = cmd->getTimeOut();
+            jsonSyncCmd["timeout"] = cmd->getTimeOut();
         if (cmd->getTimeDelay() > 0)
-            jsonCmd["delay"] = cmd->getTimeDelay();
+            jsonSyncCmd["delay"] = cmd->getTimeDelay();
         if (cmd->end)
-            jsonCmd["end"] = cmd->end;
+            jsonSyncCmd["end"] = cmd->end;
         if (cmd->runOnJump)
-            jsonCmd["runOnJump"] = cmd->runOnJump;
+            jsonSyncCmd["runOnJump"] = cmd->runOnJump;
 
         if (cmd->isTxCommand())
-            jsonCmd["txCommand"] = cmd->getTxCommand();
+            jsonSyncCmd["txCommand"] = cmd->getTxCommand();
         if (cmd->isRxCommand())
-            jsonCmd["rxCommand"] = cmd->getRxCommand();
+            jsonSyncCmd["rxCommand"] = cmd->getRxCommand();
         if (cmd->isTxArguments())
-            jsonCmd["txParameter"] = cmd->getTxArguments();
+            jsonSyncCmd["txParameter"] = cmd->getTxArguments();
         if (cmd->isRxAnswers())
-            jsonCmd["rxParameter"] = cmd->getRxAnswers();
-        if (!cmd->getMeanFormula().isEmpty()){
-            jsonCmd["formula"] = cmd->getMeanFormula();
-            jsonCmd["useFormula"] = true;
+            jsonSyncCmd["rxParameter"] = cmd->getRxAnswers();
+        if (!cmd->getMeanFormula().isEmpty()) {
+            jsonSyncCmd["formula"] = cmd->getMeanFormula();
+            jsonSyncCmd["useFormula"] = true;
         }
-        if (!cmd->getMeasFormula().isEmpty()){
-            jsonCmd["measFormula"] = cmd->getMeasFormula();
+        if (!cmd->getMeasFormula().isEmpty()) {
+            jsonSyncCmd["measFormula"] = cmd->getMeasFormula();
         }
         if ((cmd->mean > 0.0) && (cmd->getMeanFormula().isEmpty()))
-            jsonCmd["mean"] = cmd->mean;
+            jsonSyncCmd["mean"] = cmd->mean;
         if (cmd->deviation > 0.0)
-            jsonCmd["deviation"] = cmd->deviation;
+            jsonSyncCmd["deviation"] = cmd->deviation;
         if (cmd->offset != 0.0)
-            jsonCmd["offset"] = cmd->offset;
+            jsonSyncCmd["offset"] = cmd->offset;
         if (!cmd->getOnOk().isEmpty())
-            jsonCmd["onOk"] = cmd->getOnOk();
+            jsonSyncCmd["onOk"] = cmd->getOnOk();
         if (!cmd->getOnError().isEmpty())
-            jsonCmd["onErr"] = cmd->getOnError();
+            jsonSyncCmd["onErr"] = cmd->getOnError();
         if (cmd->getIsCr())
-            jsonCmd["CR"] = cmd->getIsCr();
+            jsonSyncCmd["CR"] = cmd->getIsCr();
         if (cmd->getIsLf())
-            jsonCmd["LF"] = cmd->getIsLf();
+            jsonSyncCmd["LF"] = cmd->getIsLf();
         if (cmd->getIsCrc16())
-            jsonCmd["CRC16"] = cmd->getIsCrc16();
+            jsonSyncCmd["CRC16"] = cmd->getIsCrc16();
         if (cmd->getIsOptional())
-            jsonCmd["OPT"] = cmd->getIsOptional();
+            jsonSyncCmd["OPT"] = cmd->getIsOptional();
 
-        jsonCommands.append(jsonCmd);
+        jsonSyncCommands.append(jsonSyncCmd);
+    }
+
+    foreach (JigSyncCommand *cmd, asyncCommands) {
+        QJsonObject jsonAsyncCmd;
+
+        jsonAsyncCmd["id"] = cmd->getId();
+        jsonAsyncCmd["name"] = cmd->getName();
+        jsonAsyncCmd["description"] = cmd->getDescription();
+
+        jsonAsyncCmd["ifName"] = cmd->getInterfaceName();
+        jsonAsyncCmd["ifCommand"] = cmd->getInterfaceCommand();
+        if (!cmd->getInterfaceArguments().isEmpty())
+            jsonAsyncCmd["ifParameter"] = cmd->getInterfaceArguments();
+        if (!cmd->getInterfaceAnswer().isEmpty())
+            jsonAsyncCmd["ifAnswer"] = cmd->getInterfaceAnswer();
+
+        if (cmd->isTxCommand())
+            jsonAsyncCmd["txCommand"] = cmd->getTxCommand();
+        if (cmd->isTxArguments())
+            jsonAsyncCmd["txParameter"] = cmd->getTxArguments();
+        if (cmd->getIsCr())
+            jsonAsyncCmd["CR"] = cmd->getIsCr();
+        if (cmd->getIsLf())
+            jsonAsyncCmd["LF"] = cmd->getIsLf();
+        if (cmd->getIsCrc16())
+            jsonAsyncCmd["CRC16"] = cmd->getIsCrc16();
+        if (cmd->getIsOptional())
+            jsonAsyncCmd["OPT"] = cmd->getIsOptional();
+
+        jsonAsyncCommands.append(jsonAsyncCmd);
     }
 
     QJsonObject ipeConfigs;
@@ -334,7 +404,8 @@ int JigSaw::writeProfile(QByteArray *data)
     json["productCode"] = productCode;
     json["interfaces"] = jsonInterfaces;
     json["ipeConfigs"] = ipeConfigs;
-    json["commands"] = jsonCommands;
+    json["syncCommands"] = jsonSyncCommands;
+    json["asyncCommands"] = jsonAsyncCommands;
 
     QJsonDocument jsonDoc(json);
     data->clear();

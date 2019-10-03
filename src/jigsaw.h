@@ -1,7 +1,7 @@
 #ifndef JIGSAW_H
 #define JIGSAW_H
 
-#include "jigcommand.h"
+#include "jigsynccommand.h"
 #include <QObject>
 
 #include "jiginterface.h"
@@ -18,7 +18,8 @@ public:
     int readProfile(QByteArray data);
     int writeProfile(QByteArray *data);
 
-    QList<JigCommand *> commands;
+    QList<JigSyncCommand *> syncCommands;
+    QList<JigSyncCommand *> asyncCommands;
     QHash<QString, JigInterface *> interfaces;
 
     QString getPickitMclrPinName() const;

@@ -6,6 +6,7 @@
 #include <QMessageBox>
 #include <QScrollBar>
 #include <QSettings>
+#include <QStyleFactory>
 #include <QThread>
 #include <QtEvents>
 
@@ -72,16 +73,14 @@ MainWindow::MainWindow(QWidget *parent)
     stateMachineTimer.setInterval(100);
     stateMachineTimer.start();
 
-    //  Carga configuraciones almacenadas
-    configUpdate = false;
-
     //  Serial Port
     checkPortTimer = new QTimer(this);
     serialBuffer = new QByteArray();
 
-    //      Jig Command and Interface Editors
-    commandEditor = new JigCommandEdit(this);
-    interfaceEditor = new JigInterfaceEdit(this);
+    //      Editors and Validators
+    commandEditor = new JigCommandEditDialog(this);
+    interfaceEditor = new JigInterfaceEditDialog(this);
+    login = new JigLoginDialog(this);
 
     //      JIGsaw
     jigsaw = new JigSaw(this);
@@ -142,7 +141,44 @@ MainWindow::MainWindow(QWidget *parent)
     //  TimeOut Timer
     connect(&timerTimeOut, &QTimer::timeout, [this]() { this->timerTimeOutDone = true; });
 
+    connect(login, &JigLoginDialog::isLogin, [this](bool ans) {
+        this->setEnabled(true);
+        if (ans) {
+            this->ui->checkBox_2->setCheckState(Qt::Checked);
+        } else {
+            this->ui->checkBox_2->setCheckState(Qt::Unchecked);
+        }
+    });
+
     profileLoaded = false;
+
+    //  Style
+    qApp->setStyle(QStyleFactory::create("Fusion"));
+    QPalette darkPalette;
+    QColor darkColor = QColor(45, 45, 45);
+    QColor disabledColor = QColor(127, 127, 127);
+    darkPalette.setColor(QPalette::Window, darkColor);
+    darkPalette.setColor(QPalette::WindowText, Qt::white);
+    darkPalette.setColor(QPalette::Base, QColor(18, 18, 18));
+    darkPalette.setColor(QPalette::AlternateBase, darkColor);
+    darkPalette.setColor(QPalette::ToolTipBase, Qt::white);
+    darkPalette.setColor(QPalette::ToolTipText, Qt::white);
+    darkPalette.setColor(QPalette::Text, Qt::white);
+    darkPalette.setColor(QPalette::Disabled, QPalette::Text, disabledColor);
+    darkPalette.setColor(QPalette::Button, darkColor);
+    darkPalette.setColor(QPalette::ButtonText, Qt::white);
+    darkPalette.setColor(QPalette::Disabled, QPalette::ButtonText, disabledColor);
+    darkPalette.setColor(QPalette::BrightText, Qt::red);
+    darkPalette.setColor(QPalette::Link, QColor(42, 130, 218));
+
+    darkPalette.setColor(QPalette::Highlight, QColor(42, 130, 218));
+    darkPalette.setColor(QPalette::HighlightedText, Qt::black);
+    darkPalette.setColor(QPalette::Disabled, QPalette::HighlightedText, disabledColor);
+
+    qApp->setPalette(darkPalette);
+
+    qApp->setStyleSheet(
+        "QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }");
 }
 
 MainWindow::~MainWindow()
@@ -215,6 +251,88 @@ void MainWindow::readAppConfigFile(QByteArray data)
     device->setDeviceProfileId("7292e595-8850-435a-b82f-32c06b40c97a");
 }
 
+QByteArray MainWindow::buildFrameToSend(JigSyncCommand *command)
+{
+    QByteArray ans;
+    QByteArray builded;
+
+    if (!command->getTxCommand().isEmpty()) {
+        //        Wildcard for random variables
+        if (command->getTxCommand().contains("%")) {
+            builded = wildcard[command->getTxCommand()];
+        } else {
+            builded = command->getTxCommand().toLatin1();
+        }
+
+        if (command->isTxArguments()) {
+            builded.append(" ");
+
+            //        Wildcard for random variables
+            if (command->getTxArguments().contains("%")) {
+                builded.append(wildcard[command->getTxArguments()]);
+            } else {
+                builded.append(command->getTxArguments());
+            }
+        }
+    }
+
+    return builded;
+}
+
+void MainWindow::processAsyncCommand(JigSyncCommand *asyncCmd)
+{
+    QString ifName;
+    JigInterface *iface;
+
+    ifName = asyncCmd->getInterfaceName();
+    iface = jigsaw->interfaces[ifName];
+
+    if (asyncCmd->getInterfaceCommand() == "open") {
+        if (!iface->isOpen()) {
+            int ans = iface->open();
+
+            if (ans == 0) {
+                qDebug() << "ok";
+            } else if (ans == -1) {
+                qDebug() << "already open";
+                return;
+            } else if (ans == -2) {
+                QString errorMsg
+                    = QString("No se puede encontrar la interfaz %1, revise si está conectada.")
+                          .arg(ifName);
+                QMessageBox::warning(this, "Advertencia", errorMsg);
+                return;
+            }
+        }
+    } else if (asyncCmd->getInterfaceCommand() == "usartXfer") {
+        QByteArray bCommand;
+        QByteArray command2Send;
+
+        if (!iface->isOpen()) {
+            QString errorMsg = QString("La interfaz %1, no está abierta.").arg(ifName);
+            QMessageBox::warning(this, "Advertencia", errorMsg);
+            return;
+        }
+
+        command2Send = buildFrameToSend(asyncCmd);
+
+        if (asyncCmd->getIsCrc16()) {
+        }
+
+        if (asyncCmd->getIsCr()) {
+            command2Send.append('\r');
+        }
+
+        if (asyncCmd->getIsLf()) {
+            command2Send.append('\n');
+        }
+
+        iface->write(command2Send);
+    } else {
+        QMessageBox::warning(this, "Advertencia", "El comando asíncrono aún no está implementado.");
+    }
+}
+
 void MainWindow::refreshTable()
 {
     ui->tableWidget->clear();
@@ -231,10 +349,10 @@ void MainWindow::refreshTable()
     ui->tableWidget->setHorizontalHeaderLabels(headers);
 
     int i = 0;
-    foreach (JigCommand *cmd, jigsaw->commands) {
+    foreach (JigSyncCommand *cmd, jigsaw->syncCommands) {
         ui->tableWidget->insertRow(i);
 
-        ui->tableWidget->setItem(i, 0, cmd->commandItem);
+        ui->tableWidget->setItem(i, 0, cmd->nameItem);
         ui->tableWidget->setItem(i, 1, cmd->minItem);
         ui->tableWidget->setItem(i, 2, cmd->measuredItem);
         ui->tableWidget->setItem(i, 3, cmd->maxItem);
@@ -257,10 +375,10 @@ void MainWindow::moveCommand(int from, int to)
     if ((from < 0) || (to < 0))
         return;
 
-    if (to >= jigsaw->commands.size())
+    if (to >= jigsaw->syncCommands.size())
         return;
 
-    jigsaw->commands.move(from, to);
+    jigsaw->syncCommands.move(from, to);
 
     for (int i = 0; i < 5; i++)
         items << ui->tableWidget->takeItem(from, i);
@@ -372,28 +490,28 @@ void MainWindow::mainStateMachine()
             runingCommand = false;
 
             completed = static_cast<double>(currentCommandIndex)
-                        / static_cast<double>(jigsaw->commands.size());
+                        / static_cast<double>(jigsaw->syncCommands.size());
             ui->progressBar->setValue(static_cast<int>(completed * 100));
 
-            if (currentCommandIndex >= jigsaw->commands.size()) {
+            if (currentCommandIndex >= jigsaw->syncCommands.size()) {
                 nextState = stateFinish;
                 break;
             }
 
-            currentCommand = jigsaw->commands[currentCommandIndex];
+            currentSyncCommand = jigsaw->syncCommands[currentCommandIndex];
 
-            ui->tableWidget->scrollToItem(currentCommand->commandItem);
+            ui->tableWidget->scrollToItem(currentSyncCommand->nameItem);
 
-            ifCommand = currentCommand->getInterfaceCommand();
-            ifArguments = currentCommand->getInterfaceArguments();
-            ifAnswer = currentCommand->getInterfaceAnswer();
-            ifAlias = currentCommand->getInterfaceName();
+            ifCommand = currentSyncCommand->getInterfaceCommand();
+            ifArguments = currentSyncCommand->getInterfaceArguments();
+            ifAnswer = currentSyncCommand->getInterfaceAnswer();
+            ifAlias = currentSyncCommand->getInterfaceName();
             interface = jigsaw->interfaces[ifAlias];
 
-            if (currentCommand->commandItem->checkState() == Qt::Checked)
-                currentCommand->setEnabled(true);
-            else if (currentCommand->commandItem->checkState() == Qt::Unchecked)
-                currentCommand->setEnabled(false);
+            if (currentSyncCommand->nameItem->checkState() == Qt::Checked)
+                currentSyncCommand->setEnabled(true);
+            else if (currentSyncCommand->nameItem->checkState() == Qt::Unchecked)
+                currentSyncCommand->setEnabled(false);
 
             currentCommandIndex++;
 
@@ -404,42 +522,43 @@ void MainWindow::mainStateMachine()
             nextState = stateProcessCommand;
 
             //      Comprueba si hay demora
-            if (currentCommand->getEnabled() && (currentCommand->getTimeDelay() > 0)) {
-                currentCommand->setState(JigCommand::delay);
+            if (currentSyncCommand->getEnabled() && (currentSyncCommand->getTimeDelay() > 0)) {
+                currentSyncCommand->setState(JigSyncCommand::delay);
                 nextState = stateDelayCommand;
             }
 
             //      Check if command has to be executed
-            if (!currentCommand->getEnabled() || (!currentCommand->runOnJump && globalCommandJump)) {
-                currentCommand->setState(JigCommand::jump);
+            if (!currentSyncCommand->getEnabled()
+                || (!currentSyncCommand->runOnJump && globalCommandJump)) {
+                currentSyncCommand->setState(JigSyncCommand::jump);
                 stateMachineTimerInterval = 10;
                 nextState = stateReadCommand;
             }
             break;
         case stateDelayCommand:
-            QThread::msleep(static_cast<unsigned long>(currentCommand->getTimeDelay()));
+            QThread::msleep(static_cast<unsigned long>(currentSyncCommand->getTimeDelay()));
             nextState = stateProcessCommand;
             break;
         case stateProcessCommand:
             runingCommand = true;
 
-            currentCommand->setState(JigCommand::running);
+            currentSyncCommand->setState(JigSyncCommand::running);
             outputInfo("*****************************************************", normal);
             if (!globalCommandJump) {
                 outputInfo(QString("Ejecutando el comando %1:%2")
                                .arg(currentCommandIndex)
-                               .arg(currentCommand->getId()),
+                               .arg(currentSyncCommand->getId()),
                            normal);
             } else {
                 outputInfo(QString("Ejecutando el comando obligatorio %1:%2")
                                .arg(currentCommandIndex)
-                               .arg(currentCommand->getId()),
+                               .arg(currentSyncCommand->getId()),
                            normal);
             }
 
             //      Show Notice
-            if (!currentCommand->messageNotice.isEmpty())
-                QMessageBox::information(this, "Atención", currentCommand->messageNotice);
+            if (!currentSyncCommand->messageNotice.isEmpty())
+                QMessageBox::information(this, "Atención", currentSyncCommand->messageNotice);
 
             switch (interface->getType()) {
             case JigInterface::none:
@@ -455,17 +574,17 @@ void MainWindow::mainStateMachine()
                 nextState = statePlugin;
                 break;
             case JigInterface::usb:
-                if (!ifCommand.compare("program"))
+                if (ifCommand == "program")
                     nextState = stateIpeProgram;
                 break;
             case JigInterface::tty:
-                if (!ifCommand.compare("open"))
+                if (ifCommand == "open")
                     nextState = stateInterfaceOpen;
 
-                if (!ifCommand.compare("close"))
+                if (ifCommand == "close")
                     nextState = stateInterfaceClose;
 
-                if (!ifCommand.compare("usartXfer")) {
+                if (ifCommand == "usartXfer") {
                     nextState = stateUsartWrite;
 
                     dataOk = false;
@@ -474,8 +593,8 @@ void MainWindow::mainStateMachine()
                 break;
             }
 
-            if (currentCommand->getUseMeanFormula()) {
-                formula = currentCommand->getMeanFormula();
+            if (currentSyncCommand->getUseMeanFormula()) {
+                formula = currentSyncCommand->getMeanFormula();
 
                 if (formula.contains('%')) {
                     if (formula.contains("%x")) {
@@ -520,9 +639,9 @@ void MainWindow::mainStateMachine()
                 evaluator = jsEngine.evaluate(formula);
                 qDebug() << evaluator.toNumber();
 
-                currentCommand->setMeasureParameters(evaluator.toNumber(),
-                                                     currentCommand->deviation,
-                                                     currentCommand->offset);
+                currentSyncCommand->setMeasureParameters(evaluator.toNumber(),
+                                                         currentSyncCommand->deviation,
+                                                         currentSyncCommand->offset);
             }
 
             retryState = nextState;
@@ -530,13 +649,13 @@ void MainWindow::mainStateMachine()
 
             timerTimeOutDone = false;
             timerTimeOut.stop();
-            timerTimeOut.start(currentCommand->getTimeOut());
+            timerTimeOut.start(currentSyncCommand->getTimeOut());
             break;
         case stateApp:
-            if (!ifCommand.compare("dialog")) {
+            if (ifCommand == "dialog") {
                 r = QMessageBox::information(this,
                                              "Advertencia",
-                                             currentCommand->getInterfaceArguments(),
+                                             currentSyncCommand->getInterfaceArguments(),
                                              QMessageBox::Ok | QMessageBox::No);
 
                 if (r == QMessageBox::Ok) {
@@ -549,20 +668,20 @@ void MainWindow::mainStateMachine()
                 break;
             }
 
-            if (!ifCommand.compare("deadtime")) {
-                QThread::msleep(static_cast<unsigned long>(currentCommand->getTimeOut()));
+            if (ifCommand == "deadtime") {
+                QThread::msleep(static_cast<unsigned long>(currentSyncCommand->getTimeOut()));
 
                 lastCommandResult = stepOk;
                 nextState = stateProcessOutput;
                 break;
             }
 
-            if (!ifCommand.compare("loraserverapi")) {
-                if (currentCommand->getTxCommand().contains("create")) {
+            if (ifCommand == "loraserverapi") {
+                if (currentSyncCommand->getTxCommand().contains("create")) {
                     device->createDevice(
-                        currentCommand
+                        currentSyncCommand
                             ->getTxArguments()); //  Esto debería salir de aqui y enviarlo a otro proceso
-                    device->setKeys(currentCommand->getTxArguments(),
+                    device->setKeys(currentSyncCommand->getTxArguments(),
                                     "00000000000000000000000000000000",
                                     "abfae4d33b42258bcf742cc51178f1d4");
                     lastCommandResult = stepOk;
@@ -572,7 +691,7 @@ void MainWindow::mainStateMachine()
                 break;
             }
 
-            if (!ifCommand.compare("end")) {
+            if (ifCommand == "end") {
                 globalCommandJump = true;
                 nextState = stateReadCommand;
                 break;
@@ -698,9 +817,9 @@ void MainWindow::mainStateMachine()
                 interface->close();
             } else if (globalCommandJump) {
                 outputInfo(QString("Salta el comando por que la interfaz %1 no está abierta.")
-                               .arg(currentCommand->getInterfaceName()),
+                               .arg(currentSyncCommand->getInterfaceName()),
                            infoType::normal);
-                currentCommand->setState(JigCommand::jump);
+                currentSyncCommand->setState(JigSyncCommand::jump);
                 nextState = stateReadCommand;
                 break;
             }
@@ -721,15 +840,15 @@ void MainWindow::mainStateMachine()
             if (!interface->isOpen()) {
                 if (globalCommandJump) {
                     outputInfo(QString("Salta el comando por que la interfaz %1 no está abierta.")
-                                   .arg(currentCommand->getInterfaceName()),
+                                   .arg(currentSyncCommand->getInterfaceName()),
                                infoType::normal);
-                    currentCommand->setState(JigCommand::jump);
+                    currentSyncCommand->setState(JigSyncCommand::jump);
                     nextState = stateReadCommand;
                     break;
                 }
 
                 outputInfo(QString("No esta abierta la interface %1")
-                               .arg(currentCommand->getInterfaceName()),
+                               .arg(currentSyncCommand->getInterfaceName()),
                            infoType::error);
                 globalCommandJump = true;
                 lastCommandResult = stepErr;
@@ -737,31 +856,31 @@ void MainWindow::mainStateMachine()
                 break;
             }
 
-            if (currentCommand->isTxCommand()) {
-                if (currentCommand->getTxCommand().contains(
-                        "%")) { //        Wildcard for random variables
-                    buildCommand = wildcard[currentCommand->getTxCommand()];
-                } else {
-                    buildCommand = currentCommand->getTxCommand().toLatin1();
+            if (!currentSyncCommand->getTxCommand().isEmpty()) {
+                buildCommand = buildFrameToSend(currentSyncCommand);
+
+                commandToSend = buildCommand;
+
+                if (currentSyncCommand->getIsCrc16()) {
                 }
 
-                if (currentCommand->isTxArguments()) {
-                    buildCommand.append(" ");
-
-                    if (currentCommand->getTxArguments().contains(
-                            "%")) { //        Wildcard for random variables
-                        buildCommand.append(wildcard[currentCommand->getTxArguments()]);
-                    } else {
-                        buildCommand.append(currentCommand->getTxArguments());
-                    }
+                if (currentSyncCommand->getIsCr()) {
+                    commandToSend.append('\r');
                 }
 
-                if (!currentCommand->getOnOk().isEmpty() || !currentCommand->getOnError().isEmpty()
-                    || !currentCommand->getRxCommand().isEmpty()) {
-                    qDebug() << "TX:" << buildCommand << "; WAIT:" << currentCommand->getOnOk();
+                if (currentSyncCommand->getIsLf()) {
+                    commandToSend.append('\n');
+                }
+
+                interface->write(commandToSend);
+
+                if (!currentSyncCommand->getOnOk().isEmpty()
+                    || !currentSyncCommand->getOnError().isEmpty()
+                    || !currentSyncCommand->getRxCommand().isEmpty()) {
+                    qDebug() << "TX:" << buildCommand << "; WAIT:" << currentSyncCommand->getOnOk();
                     outputInfo(QString("Tx: %1 [espero: %2]")
                                    .arg(QString::fromLatin1(buildCommand))
-                                   .arg(currentCommand->getOnOk()),
+                                   .arg(currentSyncCommand->getOnOk()),
                                normal);
                     nextState = stateUsartRead;
                 } else {
@@ -770,21 +889,7 @@ void MainWindow::mainStateMachine()
                     nextState = stateProcessOutput;
                 }
 
-                commandToSend = buildCommand;
-
-                if (currentCommand->getIsCrc16()) {
-                }
-
-                if (currentCommand->getIsCr()) {
-                    commandToSend.append('\r');
-                }
-
-                if (currentCommand->getIsLf()) {
-                    commandToSend.append('\n');
-                }
-
-                interface->write(commandToSend);
-            } else if (!currentCommand->getRxCommand().isEmpty()) {
+            } else if (!currentSyncCommand->getRxCommand().isEmpty()) {
                 nextState = stateUsartRead;
             } else {
                 nextState = stateUsartRead;
@@ -800,7 +905,7 @@ void MainWindow::mainStateMachine()
 
             if (!interface->isOpen()) {
                 outputInfo(QString("No esta abierta la interface %1")
-                               .arg(currentCommand->getInterfaceName()),
+                               .arg(currentSyncCommand->getInterfaceName()),
                            infoType::error);
                 globalCommandJump = true;
                 lastCommandResult = stepErr;
@@ -809,46 +914,47 @@ void MainWindow::mainStateMachine()
             }
 
             if (interface->dataReady()) {
-                if (currentCommand->isTxCommand()) {
-                    if (!currentCommand->getOnOk().isEmpty()
-                        || !currentCommand->getOnError().isEmpty()) {
+                if (currentSyncCommand->isTxCommand()) {
+                    if (!currentSyncCommand->getOnOk().isEmpty()
+                        || !currentSyncCommand->getOnError().isEmpty()) {
                         if (interface->rxBuffer.contains(
-                                QString("\r" + currentCommand->getOnOk() + "\r\n").toLatin1())
+                                QString("\r" + currentSyncCommand->getOnOk() + "\r\n").toLatin1())
                             || interface->rxBuffer.contains(
-                                   QString("\r\n" + currentCommand->getOnOk() + "\r\n").toLatin1())) {
+                                   QString("\r\n" + currentSyncCommand->getOnOk() + "\r\n")
+                                       .toLatin1())) {
                             dataOk = true;
                             onOk = true;
                         }
 
                         if (interface->rxBuffer.contains(
-                                QString("\r" + currentCommand->getOnError() + "\r\n").toLatin1())
+                                QString("\r" + currentSyncCommand->getOnError() + "\r\n").toLatin1())
                             || interface->rxBuffer.contains(
-                                   QString("\r\n" + currentCommand->getOnError() + "\r\n")
+                                   QString("\r\n" + currentSyncCommand->getOnError() + "\r\n")
                                        .toLatin1())) {
                             dataOk = true;
                         }
-                    } else if (!currentCommand->getRxCommand().isEmpty()) {
+                    } else if (!currentSyncCommand->getRxCommand().isEmpty()) {
                         if (interface->rxBuffer.contains(
-                                QString(currentCommand->getRxCommand()).toLatin1())) {
+                                QString(currentSyncCommand->getRxCommand()).toLatin1())) {
                             dataOk = true;
                             onOk = true;
                         }
                     }
-                } else if (currentCommand->isRxCommand()) {
+                } else if (currentSyncCommand->isRxCommand()) {
                     if (interface->rxBuffer.contains(
-                            QString(currentCommand->getRxCommand()).toLatin1())) {
+                            QString(currentSyncCommand->getRxCommand()).toLatin1())) {
                         dataOk = true;
                         onOk = true;
                     }
                 } else {
                     if (interface->rxBuffer.contains(
-                            QString(currentCommand->getOnOk() + "\r\n").toLatin1())) {
+                            QString(currentSyncCommand->getOnOk() + "\r\n").toLatin1())) {
                         dataOk = true;
                         onOk = true;
                     }
 
                     if (interface->rxBuffer.contains(
-                            QString(currentCommand->getOnError() + "\r\n").toLatin1())) {
+                            QString(currentSyncCommand->getOnError() + "\r\n").toLatin1())) {
                         dataOk = true;
                     }
                 }
@@ -890,13 +996,21 @@ void MainWindow::mainStateMachine()
 
                 qDebug() << "RX:" << dataResponseList;
 
-                if (currentCommand->isRxCommand()) {
-                    answerIndex = dataResponseList.size() - 1;
+                if (currentSyncCommand->isRxCommand()) {
+                    int index = 0;
+                    answerIndex = -1;
+                    foreach (QString str, dataResponseList) {
+                        if (str.contains(currentSyncCommand->getRxCommand())) {
+                            answerIndex = index;
+                            break;
+                        }
+                        index++;
+                    }
                 } else {
                     if (onOk) {
-                        answerIndex = dataResponseList.indexOf(currentCommand->getOnOk());
+                        answerIndex = dataResponseList.indexOf(currentSyncCommand->getOnOk());
                     } else {
-                        answerIndex = dataResponseList.indexOf(currentCommand->getOnError());
+                        answerIndex = dataResponseList.indexOf(currentSyncCommand->getOnError());
                     }
                 }
 
@@ -911,7 +1025,7 @@ void MainWindow::mainStateMachine()
                     break;
                 }
 
-                if (currentCommand->isTxCommand()) {
+                if (currentSyncCommand->isTxCommand()) {
                     cmdEchoIndex = dataResponseList.indexOf(buildCommand);
 
                     if ((cmdEchoIndex >= 0) && (answerIndex > cmdEchoIndex)) {
@@ -920,35 +1034,38 @@ void MainWindow::mainStateMachine()
                     }
                 }
 
-                if (currentCommand->isRxCommand()) {
+                if (currentSyncCommand->isRxCommand()) {
                     dataResponseList = answer.split(' ');
 
                     cmdEcho = dataResponseList.takeAt(0);
                     rxAnswers = dataResponseList.join(' ');
 
-                    if (currentCommand->getRxCommand().compare(cmdEcho) == 0)
+                    if (currentSyncCommand->getRxCommand() == cmdEcho)
                         lastCommandResult = stepOk;
                 }
 
-                if (currentCommand->isRxAnswers()) {
-                    if (currentCommand->getRxAnswers().contains('%')) { //      Variable comodín
-                        wildcard[currentCommand->getRxAnswers()] = rxAnswers.toLatin1();
+                if (currentSyncCommand->isRxAnswers()) {
+                    qDebug() << "valid answer:" << rxAnswers;
+
+                    if (currentSyncCommand->getRxAnswers().contains('%')) { //      Variable comodín
+                        wildcard[currentSyncCommand->getRxAnswers()] = rxAnswers.toLatin1();
                         wildcard["%2db"] = rxAnswers.toLatin1();
 
-                        if (!currentCommand->getRxAnswers().compare("%D")) {
+                        if (currentSyncCommand->getRxAnswers() == "%D") {
                             QDateTime t1 = QDateTime::fromString(rxAnswers, "dd/MM/yyyy HH:mm:ss");
                             QDateTime t2 = QDateTime::currentDateTime();
 
-                            qDebug() << t2.secsTo(t1);
+                            qDebug() << "localTime" << t1 << "; deviceTime" << t2
+                                     << "diff:" << t2.secsTo(t1);
 
                             if (abs(t2.secsTo(t1)) < 10) {
                                 lastCommandResult = stepOk;
                             } else {
                                 lastCommandResult = stepErr;
                             }
-                        } else if (!currentCommand->getRxAnswers().compare("%measure")) {
-                            if (!currentCommand->getMeasFormula().isEmpty()) {
-                                formula = currentCommand->getMeasFormula();
+                        } else if (currentSyncCommand->getRxAnswers() == "%measure") {
+                            if (!currentSyncCommand->getMeasFormula().isEmpty()) {
+                                formula = currentSyncCommand->getMeasFormula();
 
                                 if (formula.contains("%")) {      //  Wildcard
                                     if (formula.contains("%f")) { // floating
@@ -959,46 +1076,48 @@ void MainWindow::mainStateMachine()
                                 evaluator = jsEngine.evaluate(formula);
                                 qDebug() << evaluator.toNumber();
 
-                                if (currentCommand->setMeasure(evaluator.toNumber())) {
+                                if (currentSyncCommand->setMeasure(evaluator.toNumber())) {
                                     lastCommandResult = stepOk;
                                 } else {
                                     lastCommandResult = stepErr;
                                 }
 
-                            } else if (currentCommand->setMeasure(rxAnswers.toDouble())) {
+                            } else if (currentSyncCommand->setMeasure(rxAnswers.toDouble())) {
                                 lastCommandResult = stepOk;
                             } else {
                                 lastCommandResult = stepErr;
                             }
-                        } else if (!currentCommand->getRxAnswers().compare("%serialNumber")) {
-                            if (QString::number(serialNumber).compare(rxAnswers) == 0) {
+                        } else if (currentSyncCommand->getRxAnswers() == "%serialNumber") {
+                            if (QString::number(serialNumber) == rxAnswers) {
                                 lastCommandResult = stepOk;
                             } else {
                                 lastCommandResult = stepErr;
                             }
-                        } else if (!currentCommand->getRxAnswers().compare("%x")) {
-                            wildcard[currentCommand->getRxAnswers()] = QByteArray::fromHex(
+                        } else if (currentSyncCommand->getRxAnswers() == "%x") {
+                            wildcard[currentSyncCommand->getRxAnswers()] = QByteArray::fromHex(
                                 rxAnswers.toLatin1());
                         }
-                    } else if (currentCommand->getRxAnswers().compare(rxAnswers) == 0) {
+                    } else if (currentSyncCommand->getRxAnswers() == rxAnswers) {
                         lastCommandResult = stepOk;
                     }
                 }
 
-                if (currentCommand->isOnOk() && !currentCommand->getOnOk().compare(answer)) {
+                if (currentSyncCommand->isOnOk() && (currentSyncCommand->getOnOk() == answer)) {
                     if (lastCommandResult != stepErr)
                         lastCommandResult = stepOk;
                 }
 
-                if (currentCommand->isOnError() && !currentCommand->getOnError().compare(answer)) {
+                if (currentSyncCommand->isOnError()
+                    && (currentSyncCommand->getOnError() == answer)) {
                     lastCommandResult = stepErr;
 
-                    if (currentCommand->isRxAnswers() && !rxAnswers.isEmpty()) {
-                        if (currentCommand->getRxAnswers().contains("%")) { //      Variable comodín
+                    if (currentSyncCommand->isRxAnswers() && !rxAnswers.isEmpty()) {
+                        if (currentSyncCommand->getRxAnswers().contains(
+                                "%")) { //      Variable comodín
 
-                            if (!currentCommand->getRxAnswers().compare("%measure")) {
-                                currentCommand->measuredItem->setText(rxAnswers);
-                                currentCommand->measuredItem->setTextColor("red");
+                            if (currentSyncCommand->getRxAnswers() == "%measure") {
+                                currentSyncCommand->measuredItem->setText(rxAnswers);
+                                currentSyncCommand->measuredItem->setTextColor("red");
                             }
                         }
                     }
@@ -1012,27 +1131,27 @@ void MainWindow::mainStateMachine()
             case stepNone:
                 break;
             case stepOk: //  OK
-                if (!currentCommand->messageOnOk.isEmpty())
-                    outputInfo(currentCommand->messageOnOk, ok);
+                if (!currentSyncCommand->messageOnOk.isEmpty())
+                    outputInfo(currentSyncCommand->messageOnOk, ok);
                 outputInfo("OK", infoType::ok);
-                currentCommand->setState(JigCommand::ok);
+                currentSyncCommand->setState(JigSyncCommand::ok);
 
                 nextState = stateReadCommand;
                 break;
             case stepErr: //  ERROR
                 errors++;
 
-                if (!currentCommand->messageOnError.isEmpty())
-                    outputInfo(currentCommand->messageOnError, error);
+                if (!currentSyncCommand->messageOnError.isEmpty())
+                    outputInfo(currentSyncCommand->messageOnError, error);
                 outputInfo("ERROR", infoType::error);
-                currentCommand->setState(JigCommand::fail);
+                currentSyncCommand->setState(JigSyncCommand::fail);
 
-                if (currentCommand->end)
+                if (currentSyncCommand->end)
                     globalCommandJump = true;
 
                 reportFails.append(QString::number(currentCommandIndex) + ":"
-                                   + currentCommand->getId() + ";");
-                reportComment.append(currentCommand->messageOnError + ";");
+                                   + currentSyncCommand->getId() + ";");
+                reportComment.append(currentSyncCommand->messageOnError + ";");
                 reportMeasure.append(wildcard["%2db"] + ";");
 
                 nextState = stateReadCommand;
@@ -1044,7 +1163,7 @@ void MainWindow::mainStateMachine()
                     outputInfo("TIMEOUT", error);
                     ui->statusBar->showMessage("Error en la prueba");
 
-                    currentCommand->setState(JigCommand::fail);
+                    currentSyncCommand->setState(JigSyncCommand::fail);
 
                     globalCommandJump = true;
                     errors++;
@@ -1054,7 +1173,7 @@ void MainWindow::mainStateMachine()
                     outputInfo("Reintento...", normal);
                     timerTimeOutDone = false;
                     timerTimeOut.stop();
-                    timerTimeOut.start(currentCommand->getTimeOut());
+                    timerTimeOut.start(currentSyncCommand->getTimeOut());
 
                     nextState = retryState;
                 }
@@ -1068,12 +1187,20 @@ void MainWindow::mainStateMachine()
             tiempoOperacion = chrono.elapsed();
             ui->labelOutput->setText("ESPERE...");
 
-            qDebug() << tiempoOperacion;
+            qDebug() << "Tiempo de la prueba" << tiempoOperacion;
 
-            //  Cierra los puertos seriales
             foreach (JigInterface *interface, jigsaw->interfaces) {
-                if (interface->getType() == JigInterface::tty) {
-                    interface->close();
+                if (interface) {
+                    if (interface->getType() == JigInterface::tty) {
+                        if (interface->isOpen()) {
+                            interface->close();
+                        }
+                    }
+                } else {
+                    QMessageBox::critical(this,
+                                          "Error",
+                                          "Se ha detectado una interfaz que no ha sido configurada,"
+                                          "revisar el perfil de pruebas.");
                 }
             }
 
@@ -1120,7 +1247,7 @@ void MainWindow::mainStateMachine()
             currentState = nextState;
     } while (globalCommandJump && !runingCommand);
 
-    if (saveDatabaseData) {
+    if (saveDatabaseData && !ui->checkBox_2->isChecked()) {
         QSqlDatabase db = QSqlDatabase::database("dbConexion");
         QSqlQuery query(db);
 
@@ -1206,9 +1333,9 @@ void MainWindow::on_lineEdit_numeroSerie_returnPressed()
         if (serialNumber != 0 && ui->lineEdit_numeroSerie->text().length() == 11)
             nextState = stateReadyToStart;
 
-        foreach (JigCommand *cmd, jigsaw->commands) {
+        foreach (JigSyncCommand *cmd, jigsaw->syncCommands) {
             cmd->clearMeasure();
-            cmd->setState(JigCommand::pending);
+            cmd->setState(JigSyncCommand::pending);
         }
     }
 }
@@ -1224,7 +1351,6 @@ void MainWindow::on_pbIpe_clicked()
         jigsaw->setConfigIpePath(path);
         ui->lineEdit_IPEPath->setText(jigsaw->getConfigIpePath());
         ipeApp.setIpePath(jigsaw->getConfigIpePath());
-        configUpdate = true;
     }
 }
 
@@ -1242,9 +1368,8 @@ void MainWindow::on_pbHex_clicked()
                                         "Archivos HEX (*.hex)");
     if (!path.isEmpty()) {
         jigsaw->setConfigHexPath(path);
-        ui->lineEdit_hexPath->setText(jigsaw->getConfigHexPath());
         ipeApp.setHexPath(jigsaw->getConfigHexPath());
-        configUpdate = true;
+        ui->lineEdit_hexPath->setText(jigsaw->getConfigHexPath());
     }
 }
 
@@ -1253,7 +1378,6 @@ void MainWindow::on_lineEdit_PICKitBUR_returnPressed()
     ui->lineEdit_PICKitBUR->setReadOnly(true);
     jigsaw->setPickitSerialNumber(ui->lineEdit_PICKitBUR->text());
     ipeApp.setPickitSerialNumber(jigsaw->getPickitSerialNumber());
-    configUpdate = true;
 }
 
 void MainWindow::outputInfo(QString info, infoType type)
@@ -1261,7 +1385,7 @@ void MainWindow::outputInfo(QString info, infoType type)
     QString color;
     switch (type) {
     case normal:
-        color = "black";
+        color = "white";
         break;
     case ok:
         color = "green";
@@ -1303,7 +1427,7 @@ void MainWindow::on_pushButtonStart_clicked()
         QMessageBox::warning(this, "Alerta", "Ingresa un número de serie para continuar");
         return;
     }
-    if (jigsaw->commands.size() == 0) {
+    if (jigsaw->syncCommands.size() == 0) {
         QMessageBox::warning(this, "Alerta", "No se ha cargado un perfil de pruebas");
         return;
     }
@@ -1389,6 +1513,17 @@ void MainWindow::on_actionLoad_triggered()
 
     refreshTable();
 
+    //  Refresh buttons
+    ui->pushButton_opcional1->setText(jigsaw->asyncCommands[0]->getName());
+    ui->pushButton_opcional2->setText(jigsaw->asyncCommands[1]->getName());
+    ui->pushButton_opcional3->setText(jigsaw->asyncCommands[2]->getName());
+    ui->pushButton_opcional4->setText(jigsaw->asyncCommands[3]->getName());
+    ui->pushButton_opcional5->setText(jigsaw->asyncCommands[4]->getName());
+    ui->pushButton_opcional6->setText(jigsaw->asyncCommands[5]->getName());
+    ui->pushButton_opcional7->setText(jigsaw->asyncCommands[6]->getName());
+    ui->pushButton_opcional8->setText(jigsaw->asyncCommands[7]->getName());
+    ui->pushButton_opcional9->setText(jigsaw->asyncCommands[8]->getName());
+
     //  Datos extra ajenos al archivo JSON pero necesarios a partir de ahora
     QSqlDatabase db = QSqlDatabase::database("dbConexion");
     QSqlQuery query(db);
@@ -1429,18 +1564,18 @@ void MainWindow::on_actionSave_triggered()
 
 void MainWindow::on_actionInsert_triggered()
 {
-    JigCommand *command = new JigCommand(this);
+    JigSyncCommand *command = new JigSyncCommand(this);
 
     command->setOnOk("0");
     command->setOnError("1");
     command->setTimeOut(3000.0);
     command->setId("id");
-    command->setCodeName("Nuevo Comando");
+    command->setName("Nuevo Comando");
 
-    jigsaw->commands.insert(tableRowReference, command);
+    jigsaw->syncCommands.insert(tableRowReference, command);
 
     ui->tableWidget->insertRow(tableRowReference);
-    ui->tableWidget->setItem(tableRowReference, 0, command->commandItem);
+    ui->tableWidget->setItem(tableRowReference, 0, command->nameItem);
     ui->tableWidget->setItem(tableRowReference, 1, command->minItem);
     ui->tableWidget->setItem(tableRowReference, 2, command->measuredItem);
     ui->tableWidget->setItem(tableRowReference, 3, command->maxItem);
@@ -1449,29 +1584,29 @@ void MainWindow::on_actionInsert_triggered()
 
 void MainWindow::on_actionEdit_triggered()
 {
-    commandEditor->loadCommand(tableRowReference, jigsaw->commands[tableRowReference]);
+    commandEditor->loadCommand(tableRowReference, jigsaw->syncCommands[tableRowReference]);
     commandEditor->show();
 }
 
 void MainWindow::on_actionRemove_triggered()
 {
-    jigsaw->commands[tableRowReference]->deleteLater();
+    jigsaw->syncCommands[tableRowReference]->deleteLater();
     ui->tableWidget->removeRow(tableRowReference);
-    jigsaw->commands.removeAt(tableRowReference);
+    jigsaw->syncCommands.removeAt(tableRowReference);
 
     qDebug() << tableRowReference;
 }
 
 void MainWindow::on_actionDuplicate_triggered()
 {
-    JigCommand *duplicated = new JigCommand(this);
-    JigCommand *original = jigsaw->commands[tableRowReference];
+    JigSyncCommand *duplicated = new JigSyncCommand(this);
+    JigSyncCommand *original = jigsaw->syncCommands[tableRowReference];
     *duplicated = *original;
 
-    jigsaw->commands.insert(tableRowReference, duplicated);
+    jigsaw->syncCommands.insert(tableRowReference, duplicated);
 
     ui->tableWidget->insertRow(tableRowReference);
-    ui->tableWidget->setItem(tableRowReference, 0, duplicated->commandItem);
+    ui->tableWidget->setItem(tableRowReference, 0, duplicated->nameItem);
     ui->tableWidget->setItem(tableRowReference, 1, duplicated->minItem);
     ui->tableWidget->setItem(tableRowReference, 2, duplicated->measuredItem);
     ui->tableWidget->setItem(tableRowReference, 3, duplicated->maxItem);
@@ -1501,7 +1636,7 @@ void MainWindow::on_actionMove_First_triggered()
 
 void MainWindow::on_actionMove_Last_triggered()
 {
-    moveCommand(tableRowReference, jigsaw->commands.size() - 1);
+    moveCommand(tableRowReference, jigsaw->syncCommands.size() - 1);
 }
 
 void MainWindow::on_actionSaveAs_triggered()
@@ -1522,9 +1657,9 @@ void MainWindow::on_tableWidget_itemChanged(QTableWidgetItem *item)
 {
     if (item->column() == 0) {
         if (item->checkState() == Qt::Checked) {
-            jigsaw->commands[item->row()]->setEnabled(true);
+            jigsaw->syncCommands[item->row()]->setEnabled(true);
         } else {
-            jigsaw->commands[item->row()]->setEnabled(false);
+            jigsaw->syncCommands[item->row()]->setEnabled(false);
         }
     }
 }
@@ -1533,11 +1668,11 @@ void MainWindow::on_checkBox_stateChanged(int arg1)
 {
     qDebug() << arg1;
     if (arg1 == Qt::Unchecked) {
-        foreach (JigCommand *cmd, jigsaw->commands) {
+        foreach (JigSyncCommand *cmd, jigsaw->syncCommands) {
             cmd->setEnabled(false);
         }
     } else if (arg1 == Qt::Checked) {
-        foreach (JigCommand *cmd, jigsaw->commands) {
+        foreach (JigSyncCommand *cmd, jigsaw->syncCommands) {
             cmd->setEnabled(true);
         }
     }
@@ -1550,9 +1685,10 @@ void MainWindow::on_actionAboutQt_triggered()
 
 void MainWindow::on_actionAbout_triggered()
 {
-    QMessageBox::about(this,
-                       "Acerca de TarpuqJIGsw",
-                       "Creado en Tarpuq Cia. Ltda. \nAutor: Galo Guzmán");
+    QString text = QString("Creado en Tarpuq Cia. Ltda. \nAutor: Galo Guzmán\nVersión %1")
+                       .arg(APP_VERSION);
+
+    QMessageBox::about(this, "Acerca de TarpuqJIGsw", text);
 }
 
 void MainWindow::on_actionEditOptionalCommand_triggered()
@@ -1598,4 +1734,58 @@ void MainWindow::on_lineEditTarpuqCode_editingFinished()
 void MainWindow::on_lineEditProjectName_editingFinished()
 {
     ui->lineEditProjectName->setReadOnly(true);
+}
+
+void MainWindow::on_checkBox_2_clicked(bool checked)
+{
+    if (checked) {
+        this->setEnabled(false);
+        login->setEnabled(true);
+        login->show();
+    }
+}
+
+void MainWindow::on_pushButton_opcional1_clicked()
+{
+    processAsyncCommand(jigsaw->asyncCommands[0]);
+}
+
+void MainWindow::on_pushButton_opcional2_clicked()
+{
+    processAsyncCommand(jigsaw->asyncCommands[1]);
+}
+
+void MainWindow::on_pushButton_opcional3_clicked()
+{
+    processAsyncCommand(jigsaw->asyncCommands[2]);
+}
+
+void MainWindow::on_pushButton_opcional4_clicked()
+{
+    processAsyncCommand(jigsaw->asyncCommands[3]);
+}
+
+void MainWindow::on_pushButton_opcional5_clicked()
+{
+    processAsyncCommand(jigsaw->asyncCommands[4]);
+}
+
+void MainWindow::on_pushButton_opcional6_clicked()
+{
+    processAsyncCommand(jigsaw->asyncCommands[5]);
+}
+
+void MainWindow::on_pushButton_opcional7_clicked()
+{
+    processAsyncCommand(jigsaw->asyncCommands[6]);
+}
+
+void MainWindow::on_pushButton_opcional8_clicked()
+{
+    processAsyncCommand(jigsaw->asyncCommands[7]);
+}
+
+void MainWindow::on_pushButton_opcional9_clicked()
+{
+    processAsyncCommand(jigsaw->asyncCommands[8]);
 }

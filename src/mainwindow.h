@@ -18,14 +18,15 @@
 
 #include <QJSEngine>
 
-#include "jigcommand.h"
+#include "jigsynccommand.h"
 #include "jiginterface.h"
 #include "jigsaw.h"
 #include "loraserverapi.h"
 #include "pickit.h"
 
-#include "jigcommandedit.h"
-#include "jiginterfaceedit.h"
+#include "jigcommandeditdialog.h"
+#include "jiginterfaceeditdialog.h"
+#include "jiglogindialog.h"
 
 namespace Ui {
 class MainWindow;
@@ -75,8 +76,6 @@ public:
         QString status;
     } testStruct;
 
-    bool configUpdate;
-
     //  GPIO
     void writeToGPIO(quint8 number, bool state);
     int readFromGPIO(quint8 number, bool *state);
@@ -106,6 +105,10 @@ public:
     Pickit::ipeStates ipeAppState;
 
     void readAppConfigFile(QByteArray data);
+
+    QByteArray buildFrameToSend(JigSyncCommand *command);
+
+    void processAsyncCommand(JigSyncCommand *asyncCmd);
 
 protected slots:
     void refreshTable();
@@ -179,10 +182,31 @@ private slots:
 
     void on_lineEditProjectName_editingFinished();
 
+    void on_checkBox_2_clicked(bool checked);
+
+    void on_pushButton_opcional1_clicked();
+
+    void on_pushButton_opcional2_clicked();
+
+    void on_pushButton_opcional3_clicked();
+
+    void on_pushButton_opcional4_clicked();
+
+    void on_pushButton_opcional5_clicked();
+
+    void on_pushButton_opcional6_clicked();
+
+    void on_pushButton_opcional7_clicked();
+
+    void on_pushButton_opcional8_clicked();
+
+    void on_pushButton_opcional9_clicked();
+
 private:
     Ui::MainWindow *ui;
-    JigCommandEdit *commandEditor;
-    JigInterfaceEdit *interfaceEditor;
+    JigCommandEditDialog *commandEditor;
+    JigInterfaceEditDialog *interfaceEditor;
+    JigLoginDialog *login;
 
     QTimer stateMachineTimer;
     QFile script;
@@ -236,7 +260,7 @@ private:
 
     QHash<QString, QByteArray> wildcard;
 
-    JigCommand *currentCommand;
+    JigSyncCommand *currentSyncCommand;
 
     testResult lastCommandResult;
 
