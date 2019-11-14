@@ -90,14 +90,14 @@ void CommandList::on_actionInsert_triggered()
     command->setId("id");
     command->setName("Nuevo Comando");
 
+    commandList->insert(tableRowReference,command);
+
     ui->tableWidget->insertRow(tableRowReference);
     ui->tableWidget->setItem(tableRowReference, 0, command->nameItem);
     ui->tableWidget->setItem(tableRowReference, 1, command->minItem);
     ui->tableWidget->setItem(tableRowReference, 2, command->measuredItem);
     ui->tableWidget->setItem(tableRowReference, 3, command->maxItem);
     ui->tableWidget->setItem(tableRowReference, 4, command->resultItem);
-
-    commandList->insert(tableRowReference,command);
 }
 
 void CommandList::on_actionRemove_triggered()
@@ -121,7 +121,6 @@ void CommandList::on_actionDuplicate_triggered()
     ui->tableWidget->setItem(tableRowReference, 2, duplicated->measuredItem);
     ui->tableWidget->setItem(tableRowReference, 3, duplicated->maxItem);
     ui->tableWidget->setItem(tableRowReference, 4, duplicated->resultItem);
-
 }
 
 QList<JigSyncCommand *> *CommandList::getCommandList() const
