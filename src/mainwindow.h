@@ -22,7 +22,7 @@
 #include "jigcommandeditdialog.h"
 #include "jiginterfaceeditdialog.h"
 #include "jiglogindialog.h"
-#include "commandlist.h"
+#include "synccommandlist.h"
 #include "asynccommandlist.h"
 
 namespace Ui {
@@ -162,11 +162,11 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-    JigCommandEditDialog *commandEditor;
-    JigInterfaceEditDialog *interfaceEditor;
+    JigCommandEditDialog *commandEditorDialog;
+    JigInterfaceEditDialog *interfaceEditorDialog;
     JigLoginDialog *login;
 
-    CommandList *commandListUi;
+    SyncCommandList *commandListUi;
     QMdiSubWindow *commandListSubwindow;
     AsyncCommandList *asyncCommandListUi;
     QMdiSubWindow *asyncCommandListSubwindow;

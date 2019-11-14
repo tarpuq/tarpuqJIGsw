@@ -1,24 +1,24 @@
-#include "commandlist.h"
+#include "synccommandlist.h"
 #include "ui_commandlist.h"
 
 #include <QMenu>
 #include <QMdiSubWindow>
 
-CommandList::CommandList(QWidget *parent) :
+SyncCommandList::SyncCommandList(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::CommandList)
+    ui(new Ui::SyncCommandList)
 {
     ui->setupUi(this);
 
     ui->tableWidget->setContextMenuPolicy(Qt::CustomContextMenu);
 }
 
-CommandList::~CommandList()
+SyncCommandList::~SyncCommandList()
 {
     delete ui;
 }
 
-void CommandList::clearTable()
+void SyncCommandList::clearTable()
 {
     ui->tableWidget->clear();
     ui->tableWidget->clearContents();
@@ -34,7 +34,7 @@ void CommandList::clearTable()
     ui->tableWidget->setHorizontalHeaderLabels(headers);
 }
 
-void CommandList::insertCommand(JigSyncCommand *cmd)
+void SyncCommandList::insertCommand(JigSyncCommand *cmd)
 {
     int currentRow = ui->tableWidget->rowCount();
     ui->tableWidget->insertRow(currentRow);
@@ -55,7 +55,7 @@ void CommandList::insertCommand(JigSyncCommand *cmd)
     static_cast<QMdiSubWindow *>(this->parent())->resize(ui->tableWidget->maximumWidth(), 500);
 }
 
-void CommandList::on_tableWidget_customContextMenuRequested(const QPoint &pos)
+void SyncCommandList::on_tableWidget_customContextMenuRequested(const QPoint &pos)
 {
     QMenu menu(this);
     QModelIndex cell = ui->tableWidget->indexAt(pos);
@@ -75,12 +75,12 @@ void CommandList::on_tableWidget_customContextMenuRequested(const QPoint &pos)
     }
 }
 
-void CommandList::on_actionEdit_triggered()
+void SyncCommandList::on_actionEdit_triggered()
 {
     emit commandEdited(commandList->at(tableRowReference));
 }
 
-void CommandList::on_actionInsert_triggered()
+void SyncCommandList::on_actionInsert_triggered()
 {
     JigSyncCommand *command = new JigSyncCommand(this);
 
@@ -100,14 +100,14 @@ void CommandList::on_actionInsert_triggered()
     ui->tableWidget->setItem(tableRowReference, 4, command->resultItem);
 }
 
-void CommandList::on_actionRemove_triggered()
+void SyncCommandList::on_actionRemove_triggered()
 {
     commandList->at(tableRowReference)->deleteLater();
     commandList->removeAt(tableRowReference);
     ui->tableWidget->removeRow(tableRowReference);
 }
 
-void CommandList::on_actionDuplicate_triggered()
+void SyncCommandList::on_actionDuplicate_triggered()
 {
     JigSyncCommand *duplicated = new JigSyncCommand(this);
     JigSyncCommand *original = commandList->at(tableRowReference);
@@ -123,17 +123,17 @@ void CommandList::on_actionDuplicate_triggered()
     ui->tableWidget->setItem(tableRowReference, 4, duplicated->resultItem);
 }
 
-QList<JigSyncCommand *> *CommandList::getCommandList() const
+QList<JigSyncCommand *> *SyncCommandList::getCommandList() const
 {
     return commandList;
 }
 
-void CommandList::setCommandList(QList<JigSyncCommand *> *value)
+void SyncCommandList::setCommandList(QList<JigSyncCommand *> *value)
 {
     commandList = value;
 }
 
-void CommandList::moveCommand(int from, int to)
+void SyncCommandList::moveCommand(int from, int to)
 {
     QList<QTableWidgetItem *> items;
 
@@ -156,37 +156,37 @@ void CommandList::moveCommand(int from, int to)
         ui->tableWidget->setItem(to, i, items[i]);
 }
 
-void CommandList::scrollToTop()
+void SyncCommandList::scrollToTop()
 {
     ui->tableWidget->scrollToTop();
 }
 
-void CommandList::scrollToItem(QTableWidgetItem *item)
+void SyncCommandList::scrollToItem(QTableWidgetItem *item)
 {
     ui->tableWidget->scrollToItem(item);
 }
 
-void CommandList::on_actionMove_Up_triggered()
+void SyncCommandList::on_actionMove_Up_triggered()
 {
     moveCommand(tableRowReference, tableRowReference - 1);
 }
 
-void CommandList::on_actionMove_Down_triggered()
+void SyncCommandList::on_actionMove_Down_triggered()
 {
     moveCommand(tableRowReference, tableRowReference + 1);
 }
 
-void CommandList::on_actionMove_Last_triggered()
+void SyncCommandList::on_actionMove_Last_triggered()
 {
     moveCommand(tableRowReference, commandList->size() - 1);
 }
 
-void CommandList::on_actionMove_First_triggered()
+void SyncCommandList::on_actionMove_First_triggered()
 {
     moveCommand(tableRowReference, 0);
 }
 
-void CommandList::on_checkBox_stateChanged(int arg1)
+void SyncCommandList::on_checkBox_stateChanged(int arg1)
 {
     if (arg1 == Qt::Unchecked) {
         foreach (JigSyncCommand *cmd, *commandList) {
@@ -199,7 +199,7 @@ void CommandList::on_checkBox_stateChanged(int arg1)
     }
 }
 
-void CommandList::on_tableWidget_itemChanged(QTableWidgetItem *item)
+void SyncCommandList::on_tableWidget_itemChanged(QTableWidgetItem *item)
 {
     if (item->column() == 0) {
         if (item->checkState() == Qt::Checked) {

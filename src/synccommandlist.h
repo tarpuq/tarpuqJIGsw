@@ -9,16 +9,16 @@
 #include "jigcommandeditdialog.h"
 
 namespace Ui {
-class CommandList;
+class SyncCommandList;
 }
 
-class CommandList : public QWidget
+class SyncCommandList : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit CommandList(QWidget *parent = nullptr);
-    ~CommandList();
+    explicit SyncCommandList(QWidget *parent = nullptr);
+    ~SyncCommandList();
 
     void clearTable();
     void insertCommand(JigSyncCommand *cmd);
@@ -58,7 +58,7 @@ signals:
     void commandEdited(JigSyncCommand *cmd);
 
 private:
-    Ui::CommandList *ui;
+    Ui::SyncCommandList *ui;
     int tableRowReference;
     QList<JigSyncCommand *> *commandList;
 

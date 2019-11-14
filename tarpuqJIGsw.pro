@@ -14,7 +14,6 @@ TEMPLATE = app
 
 SOURCES += src/main.cpp\
         src/asynccommandlist.cpp \
-        src/commandlist.cpp \
         src/gtablewidget.cpp \
         src/jigcommandeditdialog.cpp \
         src/jiginterfaceeditdialog.cpp \
@@ -27,11 +26,11 @@ SOURCES += src/main.cpp\
         src/jigsynccommand.cpp \
         src/mainwindow.cpp \
         src/pickit.cpp \
-        src/loraserverapi.cpp
+        src/loraserverapi.cpp \
+        src/synccommandlist.cpp
 
 HEADERS  += src/mainwindow.h \
         src/asynccommandlist.h \
-        src/commandlist.h \
         src/gtablewidget.h \
         src/jigcommandeditdialog.h \
         src/jiginterfaceeditdialog.h \
@@ -43,7 +42,8 @@ HEADERS  += src/mainwindow.h \
         src/jigsaw.h \
         src/jigsynccommand.h \
         src/pickit.h \
-        src/loraserverapi.h
+        src/loraserverapi.h \
+        src/synccommandlist.h
 
 FORMS    += src/mainwindow.ui \
             src/asynccommandlist.ui \

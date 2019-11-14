@@ -78,8 +78,8 @@ MainWindow::MainWindow(QWidget *parent)
     serialBuffer = new QByteArray();
 
     //      Editors and Validators
-    commandEditor = new JigCommandEditDialog(this);
-    interfaceEditor = new JigInterfaceEditDialog(this);
+    commandEditorDialog = new JigCommandEditDialog(this);
+    interfaceEditorDialog = new JigInterfaceEditDialog(this);
     login = new JigLoginDialog(this);
 
     //      JIGsaw
@@ -154,7 +154,7 @@ MainWindow::MainWindow(QWidget *parent)
     profileLoaded = false;
 
     //  CommandList
-    commandListUi = new CommandList(this);
+    commandListUi = new SyncCommandList(this);
     commandListSubwindow = new QMdiSubWindow(this);
     commandListSubwindow->setAttribute(Qt::WA_DeleteOnClose, false);
     commandListSubwindow->setWidget(commandListUi);
@@ -167,9 +167,9 @@ MainWindow::MainWindow(QWidget *parent)
     asyncCommandListSubwindow->setWidget(asyncCommandListUi);
     ui->mdiArea->addSubWindow(asyncCommandListSubwindow);
 
-    connect(commandListUi, &CommandList::commandEdited, [this](JigSyncCommand *cmd) {
-        commandEditor->loadCommand(0, cmd);
-        commandEditor->show();
+    connect(commandListUi, &SyncCommandList::commandEdited, [this](JigSyncCommand *cmd) {
+        commandEditorDialog->loadCommand(0, cmd);
+        commandEditorDialog->show();
     });
 
     connect(asyncCommandListUi,
@@ -1510,11 +1510,11 @@ void MainWindow::on_actionLoad_triggered()
         QMessageBox::warning(this, "Advertencia", "No fue posible conectarse con la base de datos.");
     }
 
-    commandEditor->setInterfaces(&jigsaw->interfaces);
-    commandEditor->setCommands(jigsaw->commandList);
-    commandEditor->setTtyCommandsList(JigInterfaceTty::getDefaultCommands());
-    commandEditor->setUsbCommandsList(JigInterfacePickit::getDefaultCommands());
-    commandEditor->setPluginCommandsList(JigInterfacePlugin::getDefaultCommands());
+    commandEditorDialog->setInterfaces(&jigsaw->interfaces);
+    commandEditorDialog->setCommands(jigsaw->commandList);
+    commandEditorDialog->setTtyCommandsList(JigInterfaceTty::getDefaultCommands());
+    commandEditorDialog->setUsbCommandsList(JigInterfacePickit::getDefaultCommands());
+    commandEditorDialog->setPluginCommandsList(JigInterfacePlugin::getDefaultCommands());
 
     commandListSubwindow->show();
     commandListUi->show();
@@ -1544,8 +1544,8 @@ void MainWindow::on_actionSave_triggered()
 
 void MainWindow::on_actionEditInterface_triggered()
 {
-    interfaceEditor->setInterfaces(jigsaw->interfaces.values());
-    interfaceEditor->show();
+    interfaceEditorDialog->setInterfaces(jigsaw->interfaces.values());
+    interfaceEditorDialog->show();
 }
 
 void MainWindow::on_actionSaveAs_triggered()
