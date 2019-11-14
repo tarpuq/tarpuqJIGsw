@@ -22,8 +22,3 @@ void JigLoginDialog::on_buttonBox_accepted()
     }
     ui->lineEdit->clear();
 }
-
-void JigLoginDialog::on_buttonBox_rejected()
-{
-    emit isLogin(false);
-}

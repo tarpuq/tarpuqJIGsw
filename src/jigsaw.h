@@ -57,6 +57,8 @@ public:
     QString getPickitTarget() const;
     void setPickitTarget(const QString &value);
 
+    bool isCommandValid(JigSyncCommand *command);
+
 signals:
 
 public slots:

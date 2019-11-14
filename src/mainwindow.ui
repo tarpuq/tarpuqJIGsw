@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1421</width>
-    <height>1071</height>
+    <width>999</width>
+    <height>884</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -30,15 +30,201 @@
   </property>
   <property name="windowIcon">
    <iconset resource="resources.qrc">
-    <normaloff>:/prefix/LogoNuevo_color_icono.svg</normaloff>:/prefix/LogoNuevo_color_icono.svg</iconset>
+    <normaloff>:/prefix/icons/LogoNuevo_color_icono.svg</normaloff>:/prefix/icons/LogoNuevo_color_icono.svg</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
    <property name="styleSheet">
     <string notr="true"/>
    </property>
-   <layout class="QVBoxLayout" name="verticalLayout">
-    <item>
-     <widget class="QLabel" name="lbProfile">
+   <layout class="QGridLayout" name="gridLayout_2">
+    <item row="2" column="0" colspan="3">
+     <widget class="Line" name="line_2">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="0" colspan="3">
+     <widget class="QLabel" name="labelOutput">
+      <property name="minimumSize">
+       <size>
+        <width>480</width>
+        <height>100</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="font">
+       <font>
+        <family>Ubuntu</family>
+        <pointsize>18</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::Panel</enum>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="textFormat">
+       <enum>Qt::AutoText</enum>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="0" rowspan="3">
+     <widget class="QMdiArea" name="mdiArea"/>
+    </item>
+    <item row="4" column="1" colspan="2">
+     <widget class="QWidget" name="widget_2" native="true">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>0</height>
+       </size>
+      </property>
+      <layout class="QGridLayout" name="gridLayout">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item row="1" column="4">
+        <widget class="QPushButton" name="pbHex">
+         <property name="text">
+          <string>Editar</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="4">
+        <widget class="QPushButton" name="pbIpe">
+         <property name="text">
+          <string>Editar</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_6">
+         <property name="text">
+          <string>Ruta del HEX</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="lineEdit_hexPath">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_3">
+         <property name="text">
+          <string>PICKit BUR</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLineEdit" name="lineEdit_PICKitBUR">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="4">
+        <widget class="QPushButton" name="pbPicKit">
+         <property name="text">
+          <string>Editar</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLineEdit" name="lineEdit_IPEPath">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_5">
+         <property name="text">
+          <string>Ruta del IPE</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item row="5" column="1" colspan="2">
+     <widget class="QTextBrowser" name="tbConsole"/>
+    </item>
+    <item row="6" column="1">
+     <widget class="QPushButton" name="pushButtonStart">
+      <property name="minimumSize">
+       <size>
+        <width>200</width>
+        <height>75</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>200</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>18</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="autoFillBackground">
+       <bool>true</bool>
+      </property>
+      <property name="text">
+       <string>Iniciar</string>
+      </property>
+     </widget>
+    </item>
+    <item row="6" column="2">
+     <widget class="QPushButton" name="pushButtonStop">
+      <property name="minimumSize">
+       <size>
+        <width>200</width>
+        <height>75</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>200</width>
+        <height>16777215</height>
+       </size>
+      </property>
       <property name="font">
        <font>
         <pointsize>18</pointsize>
@@ -47,14 +233,21 @@
        </font>
       </property>
       <property name="text">
-       <string>No se ha cargado un perfil</string>
+       <string>Parar</string>
       </property>
      </widget>
     </item>
-    <item>
+    <item row="7" column="0" colspan="3">
+     <widget class="QProgressBar" name="progressBar">
+      <property name="value">
+       <number>0</number>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0" colspan="3">
      <layout class="QGridLayout" name="gridLayout_3">
-      <item row="0" column="0">
-       <widget class="QLabel" name="label">
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_7">
         <property name="maximumSize">
          <size>
           <width>16777215</width>
@@ -67,7 +260,33 @@
          </font>
         </property>
         <property name="text">
-         <string>Código:</string>
+         <string>Producto:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QPushButton" name="pushButton">
+        <property name="text">
+         <string>Editar</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QPushButton" name="pushButton_2">
+        <property name="text">
+         <string>Editar</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Número de Serie:</string>
         </property>
        </widget>
       </item>
@@ -90,24 +309,6 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_7">
-        <property name="maximumSize">
-         <size>
-          <width>16777215</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>Producto:</string>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="1">
        <widget class="QLineEdit" name="lineEditTarpuqCode">
         <property name="minimumSize">
@@ -127,103 +328,8 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="2">
-       <widget class="QPushButton" name="pushButton">
-        <property name="text">
-         <string>Editar</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2">
-       <widget class="QPushButton" name="pushButton_2">
-        <property name="text">
-         <string>Editar</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item>
-     <widget class="Line" name="line_2">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <layout class="QGridLayout" name="gridLayout_2">
-      <item row="2" column="0" rowspan="8">
-       <widget class="GTableWidget" name="tableWidget">
-        <property name="maximumSize">
-         <size>
-          <width>500</width>
-          <height>16777215</height>
-         </size>
-        </property>
-       </widget>
-      </item>
-      <item row="9" column="1" colspan="2">
-       <widget class="QTextBrowser" name="tbConsole"/>
-      </item>
-      <item row="8" column="2">
-       <widget class="QPushButton" name="pushButtonStop">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>75</height>
-         </size>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>18</pointsize>
-          <weight>75</weight>
-          <bold>true</bold>
-         </font>
-        </property>
-        <property name="text">
-         <string>Parar</string>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="0">
-       <widget class="QCheckBox" name="checkBox">
-        <property name="text">
-         <string>Activar/Desactivar todas las pruebas</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="1" colspan="2">
-       <layout class="QHBoxLayout" name="horizontalLayout">
-        <item>
-         <widget class="QLabel" name="label_2">
-          <property name="text">
-           <string>Número de Serie</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLineEdit" name="lineEdit_numeroSerie">
-          <property name="text">
-           <string/>
-          </property>
-          <property name="maxLength">
-           <number>11</number>
-          </property>
-          <property name="cursorPosition">
-           <number>0</number>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item row="6" column="1" colspan="2">
-       <widget class="QLabel" name="labelOutput">
-        <property name="minimumSize">
-         <size>
-          <width>480</width>
-          <height>100</height>
-         </size>
-        </property>
+       <widget class="QLabel" name="label">
         <property name="maximumSize">
          <size>
           <width>16777215</width>
@@ -232,252 +338,40 @@
         </property>
         <property name="font">
          <font>
-          <family>Ubuntu</family>
-          <pointsize>18</pointsize>
-          <weight>75</weight>
-          <bold>true</bold>
+          <pointsize>12</pointsize>
          </font>
         </property>
-        <property name="frameShape">
-         <enum>QFrame::Panel</enum>
+        <property name="text">
+         <string>Código:</string>
         </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QLineEdit" name="lineEdit_numeroSerie">
         <property name="text">
          <string/>
         </property>
-        <property name="textFormat">
-         <enum>Qt::AutoText</enum>
+        <property name="maxLength">
+         <number>11</number>
         </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="1" colspan="2">
-       <widget class="QWidget" name="widget" native="true">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>0</height>
-         </size>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_5">
-         <property name="leftMargin">
-          <number>0</number>
-         </property>
-         <property name="topMargin">
-          <number>0</number>
-         </property>
-         <property name="rightMargin">
-          <number>0</number>
-         </property>
-         <property name="bottomMargin">
-          <number>0</number>
-         </property>
-         <item row="0" column="1">
-          <widget class="QPushButton" name="pushButton_opcional2">
-           <property name="text">
-            <string>Opcional 2</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="0">
-          <widget class="QPushButton" name="pushButton_opcional1">
-           <property name="text">
-            <string>Opcional 1</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QPushButton" name="pushButton_opcional5">
-           <property name="text">
-            <string>Opcional 5</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="2">
-          <widget class="QPushButton" name="pushButton_opcional6">
-           <property name="text">
-            <string>Opcional 6</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QPushButton" name="pushButton_opcional4">
-           <property name="text">
-            <string>Opcional 4</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="2">
-          <widget class="QPushButton" name="pushButton_opcional3">
-           <property name="text">
-            <string>Opcional 3</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QPushButton" name="pushButton_opcional7">
-           <property name="text">
-            <string>Opcional 7</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="QPushButton" name="pushButton_opcional8">
-           <property name="text">
-            <string>Opcional 8</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="2">
-          <widget class="QPushButton" name="pushButton_opcional9">
-           <property name="text">
-            <string>Opcional 9</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item row="8" column="1">
-       <widget class="QPushButton" name="pushButtonStart">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>75</height>
-         </size>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>18</pointsize>
-          <weight>75</weight>
-          <bold>true</bold>
-         </font>
-        </property>
-        <property name="autoFillBackground">
-         <bool>true</bool>
-        </property>
-        <property name="text">
-         <string>Iniciar</string>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="1" colspan="2">
-       <widget class="Line" name="line">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1" rowspan="4" colspan="2">
-       <widget class="QWidget" name="widget_2" native="true">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>0</height>
-         </size>
-        </property>
-        <layout class="QGridLayout" name="gridLayout">
-         <property name="leftMargin">
-          <number>0</number>
-         </property>
-         <property name="topMargin">
-          <number>0</number>
-         </property>
-         <property name="rightMargin">
-          <number>0</number>
-         </property>
-         <property name="bottomMargin">
-          <number>0</number>
-         </property>
-         <item row="0" column="1">
-          <widget class="QLineEdit" name="lineEdit_IPEPath">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="readOnly">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="4">
-          <widget class="QPushButton" name="pbHex">
-           <property name="text">
-            <string>Editar</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_5">
-           <property name="text">
-            <string>Ruta del IPE</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="4">
-          <widget class="QPushButton" name="pbIpe">
-           <property name="text">
-            <string>Editar</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_6">
-           <property name="text">
-            <string>Ruta del HEX</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QLineEdit" name="lineEdit_hexPath">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="readOnly">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_3">
-           <property name="text">
-            <string>PICKit BUR</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="QLineEdit" name="lineEdit_PICKitBUR">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="readOnly">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="4">
-          <widget class="QPushButton" name="pbPicKit">
-           <property name="text">
-            <string>Editar</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QCheckBox" name="checkBox_2">
-        <property name="text">
-         <string>Debug</string>
+        <property name="cursorPosition">
+         <number>0</number>
         </property>
        </widget>
       </item>
      </layout>
     </item>
-    <item>
-     <widget class="QProgressBar" name="progressBar">
-      <property name="value">
-       <number>0</number>
+    <item row="0" column="0" colspan="3">
+     <widget class="QLabel" name="lbProfile">
+      <property name="font">
+       <font>
+        <pointsize>18</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>No se ha cargado un perfil</string>
       </property>
      </widget>
     </item>
@@ -488,8 +382,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1421</width>
-     <height>20</height>
+     <width>999</width>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuArchivo">
@@ -509,7 +403,22 @@
     <addaction name="actionAbout"/>
     <addaction name="actionAboutQt"/>
    </widget>
+   <widget class="QMenu" name="menuHerramientas">
+    <property name="title">
+     <string>Herramientas</string>
+    </property>
+    <addaction name="actionDebug"/>
+   </widget>
+   <widget class="QMenu" name="menuVer">
+    <property name="title">
+     <string>Ver</string>
+    </property>
+    <addaction name="actionShowCommandList"/>
+    <addaction name="actionShowCommandOptional"/>
+   </widget>
    <addaction name="menuArchivo"/>
+   <addaction name="menuHerramientas"/>
+   <addaction name="menuVer"/>
    <addaction name="menuAcerca_de"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
@@ -538,7 +447,7 @@
   <action name="actionLoad">
    <property name="icon">
     <iconset resource="resources.qrc">
-     <normaloff>:/prefix/folder.svg</normaloff>:/prefix/folder.svg</iconset>
+     <normaloff>:/prefix/icons/folder.svg</normaloff>:/prefix/icons/folder.svg</iconset>
    </property>
    <property name="text">
     <string>Abrir</string>
@@ -550,7 +459,7 @@
   <action name="actionSave">
    <property name="icon">
     <iconset resource="resources.qrc">
-     <normaloff>:/prefix/save.svg</normaloff>:/prefix/save.svg</iconset>
+     <normaloff>:/prefix/icons/save.svg</normaloff>:/prefix/icons/save.svg</iconset>
    </property>
    <property name="text">
     <string>Guardar</string>
@@ -559,85 +468,12 @@
     <string>Guardar perfil</string>
    </property>
   </action>
-  <action name="actionEdit">
-   <property name="icon">
-    <iconset resource="resources.qrc">
-     <normaloff>:/prefix/edit.svg</normaloff>:/prefix/edit.svg</iconset>
-   </property>
-   <property name="text">
-    <string>Editar</string>
-   </property>
-   <property name="toolTip">
-    <string>Editar comando</string>
-   </property>
-  </action>
-  <action name="actionInsert">
-   <property name="icon">
-    <iconset resource="resources.qrc">
-     <normaloff>:/prefix/add-1.svg</normaloff>:/prefix/add-1.svg</iconset>
-   </property>
-   <property name="text">
-    <string>Insertar</string>
-   </property>
-   <property name="toolTip">
-    <string>Insertar comando</string>
-   </property>
-  </action>
-  <action name="actionRemove">
-   <property name="icon">
-    <iconset resource="resources.qrc">
-     <normaloff>:/prefix/minus-1.svg</normaloff>:/prefix/minus-1.svg</iconset>
-   </property>
-   <property name="text">
-    <string>Eliminar</string>
-   </property>
-   <property name="toolTip">
-    <string>Eliminar comando</string>
-   </property>
-  </action>
-  <action name="actionEditInterface">
-   <property name="icon">
-    <iconset resource="resources.qrc">
-     <normaloff>:/prefix/handshake.svg</normaloff>:/prefix/handshake.svg</iconset>
-   </property>
-   <property name="text">
-    <string>Editor de interfaces</string>
-   </property>
-   <property name="toolTip">
-    <string>Editor de interfaces</string>
-   </property>
-  </action>
-  <action name="actionMove_Up">
-   <property name="text">
-    <string>Mover Arriba</string>
-   </property>
-  </action>
-  <action name="actionMove_Down">
-   <property name="text">
-    <string>Mover Abajo</string>
-   </property>
-  </action>
-  <action name="actionDuplicate">
-   <property name="text">
-    <string>Duplicar</string>
-   </property>
-  </action>
   <action name="actionSaveAs">
    <property name="text">
     <string>Guardar como</string>
    </property>
    <property name="toolTip">
     <string>Guardar perfil como</string>
-   </property>
-  </action>
-  <action name="actionMove_Last">
-   <property name="text">
-    <string>Mover al final</string>
-   </property>
-  </action>
-  <action name="actionMove_First">
-   <property name="text">
-    <string>Mover al inicio</string>
    </property>
   </action>
   <action name="actionAboutQt">
@@ -650,24 +486,38 @@
     <string>Acerca de</string>
    </property>
   </action>
-  <action name="actionEditOptionalCommand">
+  <action name="actionDebug">
+   <property name="text">
+    <string>Debug</string>
+   </property>
+   <property name="toolTip">
+    <string>Pone la aplicación en modo Debug</string>
+   </property>
+  </action>
+  <action name="actionEditInterface">
    <property name="icon">
     <iconset resource="resources.qrc">
-     <normaloff>:/prefix/edit.svg</normaloff>:/prefix/edit.svg</iconset>
+     <normaloff>:/prefix/icons/handshake.svg</normaloff>:/prefix/icons/handshake.svg</iconset>
    </property>
    <property name="text">
-    <string>Editar</string>
+    <string>Editor de interfaces</string>
+   </property>
+   <property name="toolTip">
+    <string>Editor de interfaces</string>
+   </property>
+  </action>
+  <action name="actionShowCommandList">
+   <property name="text">
+    <string>Lista de comandos</string>
+   </property>
+  </action>
+  <action name="actionShowCommandOptional">
+   <property name="text">
+    <string>Comandos opcionales</string>
    </property>
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <customwidgets>
-  <customwidget>
-   <class>GTableWidget</class>
-   <extends>QTableWidget</extends>
-   <header>src/gtablewidget.h</header>
-  </customwidget>
- </customwidgets>
  <resources>
   <include location="resources.qrc"/>
  </resources>

@@ -6,27 +6,24 @@
 #include <QFile>
 #include <QProcess>
 #include <QTimer>
-
 #include <QSqlDatabase>
-
 #include <QHash>
-
 #include <QSerialPort>
 #include <QSerialPortInfo>
-
 #include <QTableWidgetItem>
-
 #include <QJSEngine>
+#include <QMdiSubWindow>
 
 #include "jigsynccommand.h"
 #include "jiginterface.h"
 #include "jigsaw.h"
 #include "loraserverapi.h"
 #include "pickit.h"
-
 #include "jigcommandeditdialog.h"
 #include "jiginterfaceeditdialog.h"
 #include "jiglogindialog.h"
+#include "commandlist.h"
+#include "asynccommandlist.h"
 
 namespace Ui {
 class MainWindow;
@@ -108,12 +105,11 @@ public:
 
     QByteArray buildFrameToSend(JigSyncCommand *command);
 
+public slots:
     void processAsyncCommand(JigSyncCommand *asyncCmd);
 
 protected slots:
     void refreshTable();
-
-    void moveCommand(int from, int to);
 
 private slots:
     void mainStateMachine();
@@ -142,37 +138,13 @@ private slots:
 
     void on_actionSave_triggered();
 
-    void on_actionInsert_triggered();
-
-    void on_actionEdit_triggered();
-
-    void on_actionRemove_triggered();
-
-    void on_tableWidget_itemChanged(QTableWidgetItem *item);
-
     void on_actionEditInterface_triggered();
 
-    void on_actionMove_Up_triggered();
-
-    void on_actionMove_Down_triggered();
-
-    void on_actionDuplicate_triggered();
-
     void on_actionSaveAs_triggered();
-
-    void on_actionMove_First_triggered();
-
-    void on_actionMove_Last_triggered();
-
-    void on_checkBox_stateChanged(int arg1);
 
     void on_actionAboutQt_triggered();
 
     void on_actionAbout_triggered();
-
-    void on_actionEditOptionalCommand_triggered();
-
-    void on_tableWidget_customContextMenuRequested(const QPoint &pos);
 
     void on_pushButton_clicked();
 
@@ -182,31 +154,22 @@ private slots:
 
     void on_lineEditProjectName_editingFinished();
 
-    void on_checkBox_2_clicked(bool checked);
+    void on_actionDebug_triggered();
 
-    void on_pushButton_opcional1_clicked();
+    void on_actionShowCommandList_triggered();
 
-    void on_pushButton_opcional2_clicked();
-
-    void on_pushButton_opcional3_clicked();
-
-    void on_pushButton_opcional4_clicked();
-
-    void on_pushButton_opcional5_clicked();
-
-    void on_pushButton_opcional6_clicked();
-
-    void on_pushButton_opcional7_clicked();
-
-    void on_pushButton_opcional8_clicked();
-
-    void on_pushButton_opcional9_clicked();
+    void on_actionShowCommandOptional_triggered();
 
 private:
     Ui::MainWindow *ui;
     JigCommandEditDialog *commandEditor;
     JigInterfaceEditDialog *interfaceEditor;
     JigLoginDialog *login;
+
+    CommandList *commandListUi;
+    QMdiSubWindow *commandListSubwindow;
+    AsyncCommandList *asyncCommandListUi;
+    QMdiSubWindow *asyncCommandListSubwindow;
 
     QTimer stateMachineTimer;
     QFile script;
@@ -283,6 +246,7 @@ private:
     QElapsedTimer chrono;
 
     bool profileLoaded;
+    bool debugMode;
 };
 
 #endif // MAINWINDOW_H

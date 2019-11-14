@@ -9,13 +9,13 @@ JigCommandEditDialog::JigCommandEditDialog(QWidget *parent)
 {
     ui->setupUi(this);
 
-    interfaces = new QStringListModel(this);
+    interfacesList = new QStringListModel(this);
 
-    commands = new QStringListModel(this);
+    commandsList = new QStringListModel(this);
 
-    ui->comboBox_tool->setModel(interfaces);
+    ui->comboBox_tool->setModel(interfacesList);
 
-    ui->comboBox_command->setModel(commands);
+    ui->comboBox_command->setModel(commandsList);
 }
 
 JigCommandEditDialog::~JigCommandEditDialog()
@@ -104,17 +104,33 @@ void JigCommandEditDialog::on_buttonBox_accepted()
     command->setState(JigSyncCommand::pending);
 }
 
-void JigCommandEditDialog::setInterfaces(QStringList interfaces)
+void JigCommandEditDialog::setInterfaces(QHash<QString, JigInterface *> *interfaces)
 {
-    this->interfaces->setStringList(interfaces);
+    this->interfaces = interfaces;
+    interfacesList->setStringList(this->interfaces->keys());
 }
 
 void JigCommandEditDialog::setCommands(QStringList commands)
 {
-    this->commands->setStringList(commands);
+    otherCommandsList = commands;
 }
 
-void JigCommandEditDialog::on_doubleSpinBox_mean_valueChanged(double arg1)
+void JigCommandEditDialog::setTtyCommandsList(const QStringList &value)
+{
+    ttyCommandsList = value;
+}
+
+void JigCommandEditDialog::setUsbCommandsList(const QStringList &value)
+{
+    usbCommandsList = value;
+}
+
+void JigCommandEditDialog::setPluginCommandsList(const QStringList &value)
+{
+    pluginCommandsList = value;
+}
+
+void JigCommandEditDialog::on_doubleSpinBox_meanFixed_valueChanged(double arg1)
 {
     qDebug() << arg1;
 
@@ -136,8 +152,29 @@ void JigCommandEditDialog::on_doubleSpinBox_deviation_valueChanged(double arg1)
     ui->lineEdit_measMin->setText(QString::number(min));
 }
 
-void JigCommandEditDialog::on_checkBox_formula_toggled(bool checked)
+void JigCommandEditDialog::on_checkBox_meanFormula_toggled(bool checked)
 {
     ui->lineEdit_meanFormula->setEnabled(checked);
     ui->doubleSpinBox_meanFixed->setEnabled(!checked);
+}
+
+void JigCommandEditDialog::on_comboBox_tool_currentIndexChanged(const QString &arg1)
+{
+    JigInterface::JigInterfaceType type;
+    type = interfaces->value(arg1)->getType();
+
+    switch (type) {
+    case JigInterface::tty:
+        this->commandsList->setStringList(ttyCommandsList);
+        break;
+    case JigInterface::usb:
+        this->commandsList->setStringList(usbCommandsList);
+        break;
+    case JigInterface::plugin:
+        this->commandsList->setStringList(pluginCommandsList);
+        break;
+    default:
+        this->commandsList->setStringList(otherCommandsList);
+        break;
+    }
 }

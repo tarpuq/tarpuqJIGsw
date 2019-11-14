@@ -104,6 +104,8 @@ MainWindow::MainWindow(QWidget *parent)
     db.setDatabaseName(dbDatabaseName);
     db.setUserName(dbUserName);
     db.setPassword(dbPassword);
+    db.setConnectOptions();
+    db.setConnectOptions("MYSQL_OPT_CONNECT_TIMEOUT=2");
 
     if (db.open()) {
         qDebug() << "DB OK";
@@ -131,11 +133,6 @@ MainWindow::MainWindow(QWidget *parent)
     ui->lineEdit_hexPath->setText(jigsaw->getConfigHexPath());
     ui->lineEdit_PICKitBUR->setText(jigsaw->getPickitSerialNumber());
 
-    ui->tableWidget->setContextMenuPolicy(Qt::CustomContextMenu);
-
-    ui->pushButton_opcional1->setContextMenuPolicy(Qt::ActionsContextMenu);
-    ui->pushButton_opcional1->addAction(ui->actionEditOptionalCommand);
-
     ui->progressBar->setValue(0);
 
     //  TimeOut Timer
@@ -144,13 +141,41 @@ MainWindow::MainWindow(QWidget *parent)
     connect(login, &JigLoginDialog::isLogin, [this](bool ans) {
         this->setEnabled(true);
         if (ans) {
-            this->ui->checkBox_2->setCheckState(Qt::Checked);
+            debugMode = true;
+            QMessageBox::information(this, "Aviso", "Modo Debug activado");
         } else {
-            this->ui->checkBox_2->setCheckState(Qt::Unchecked);
+            debugMode = false;
+            QMessageBox::information(this, "Aviso", "Contraseña incorrecta");
         }
     });
+    connect(login, &JigLoginDialog::finished, [this]() { this->setEnabled(true); });
+    connect(login, &JigLoginDialog::rejected, [this]() { this->setEnabled(true); });
 
     profileLoaded = false;
+
+    //  CommandList
+    commandListUi = new CommandList(this);
+    commandListSubwindow = new QMdiSubWindow(this);
+    commandListSubwindow->setAttribute(Qt::WA_DeleteOnClose, false);
+    commandListSubwindow->setWidget(commandListUi);
+    ui->mdiArea->addSubWindow(commandListSubwindow);
+    commandListUi->setCommandList(&jigsaw->syncCommands);
+
+    asyncCommandListUi = new AsyncCommandList(this);
+    asyncCommandListSubwindow = new QMdiSubWindow(this);
+    asyncCommandListSubwindow->setAttribute(Qt::WA_DeleteOnClose, false);
+    asyncCommandListSubwindow->setWidget(asyncCommandListUi);
+    ui->mdiArea->addSubWindow(asyncCommandListSubwindow);
+
+    connect(commandListUi, &CommandList::commandEdited, [this](JigSyncCommand *cmd) {
+        commandEditor->loadCommand(0, cmd);
+        commandEditor->show();
+    });
+
+    connect(asyncCommandListUi,
+            &AsyncCommandList::opcionalCommandExecuted,
+            this,
+            &MainWindow::processAsyncCommand);
 
     //  Style
     qApp->setStyle(QStyleFactory::create("Fusion"));
@@ -335,60 +360,11 @@ void MainWindow::processAsyncCommand(JigSyncCommand *asyncCmd)
 
 void MainWindow::refreshTable()
 {
-    ui->tableWidget->clear();
-    ui->tableWidget->clearContents();
-    ui->tableWidget->setRowCount(0);
-    ui->tableWidget->setColumnCount(5);
+    commandListUi->clearTable();
 
-    QStringList headers;
-    headers << "Prueba"
-            << "Mínimo"
-            << "Medido"
-            << "Máximo"
-            << "Estado";
-    ui->tableWidget->setHorizontalHeaderLabels(headers);
-
-    int i = 0;
     foreach (JigSyncCommand *cmd, jigsaw->syncCommands) {
-        ui->tableWidget->insertRow(i);
-
-        ui->tableWidget->setItem(i, 0, cmd->nameItem);
-        ui->tableWidget->setItem(i, 1, cmd->minItem);
-        ui->tableWidget->setItem(i, 2, cmd->measuredItem);
-        ui->tableWidget->setItem(i, 3, cmd->maxItem);
-        ui->tableWidget->setItem(i, 4, cmd->resultItem);
-        i++;
+        commandListUi->insertCommand(cmd);
     }
-
-    ui->tableWidget->resizeColumnToContents(0);
-    ui->tableWidget->setColumnWidth(1, 125);
-    ui->tableWidget->setMaximumWidth(
-        ui->tableWidget->columnWidth(0) + ui->tableWidget->columnWidth(1)
-        + ui->tableWidget->columnWidth(2) + ui->tableWidget->columnWidth(3)
-        + ui->tableWidget->columnWidth(4) + 50);
-}
-
-void MainWindow::moveCommand(int from, int to)
-{
-    QList<QTableWidgetItem *> items;
-
-    if ((from < 0) || (to < 0))
-        return;
-
-    if (to >= jigsaw->syncCommands.size())
-        return;
-
-    jigsaw->syncCommands.move(from, to);
-
-    for (int i = 0; i < 5; i++)
-        items << ui->tableWidget->takeItem(from, i);
-
-    ui->tableWidget->removeRow(from);
-
-    ui->tableWidget->insertRow(to);
-
-    for (int i = 0; i < 5; i++)
-        ui->tableWidget->setItem(to, i, items[i]);
 }
 
 void MainWindow::mainStateMachine()
@@ -423,6 +399,8 @@ void MainWindow::mainStateMachine()
     int answerIndex;
 
     double completed;
+
+    QBrush brush;
 
     //      Date and time into variables list
     do {
@@ -469,7 +447,7 @@ void MainWindow::mainStateMachine()
             ui->statusBar->showMessage("Iniciando Pruebas");
             ui->labelOutput->setText("ESPERE");
             ui->labelOutput->setStyleSheet("background-color: normal;");
-            ui->tableWidget->scrollToTop();
+            commandListUi->scrollToTop();
 
             reportFails.clear();
             reportComment.clear();
@@ -500,7 +478,7 @@ void MainWindow::mainStateMachine()
 
             currentSyncCommand = jigsaw->syncCommands[currentCommandIndex];
 
-            ui->tableWidget->scrollToItem(currentSyncCommand->nameItem);
+            commandListUi->scrollToItem(currentSyncCommand->nameItem);
 
             ifCommand = currentSyncCommand->getInterfaceCommand();
             ifArguments = currentSyncCommand->getInterfaceArguments();
@@ -920,8 +898,7 @@ void MainWindow::mainStateMachine()
                         if (interface->rxBuffer.contains(
                                 QString("\r" + currentSyncCommand->getOnOk() + "\r\n").toLatin1())
                             || interface->rxBuffer.contains(
-                                   QString("\r\n" + currentSyncCommand->getOnOk() + "\r\n")
-                                       .toLatin1())) {
+                                QString("\r\n" + currentSyncCommand->getOnOk() + "\r\n").toLatin1())) {
                             dataOk = true;
                             onOk = true;
                         }
@@ -929,8 +906,8 @@ void MainWindow::mainStateMachine()
                         if (interface->rxBuffer.contains(
                                 QString("\r" + currentSyncCommand->getOnError() + "\r\n").toLatin1())
                             || interface->rxBuffer.contains(
-                                   QString("\r\n" + currentSyncCommand->getOnError() + "\r\n")
-                                       .toLatin1())) {
+                                QString("\r\n" + currentSyncCommand->getOnError() + "\r\n")
+                                    .toLatin1())) {
                             dataOk = true;
                         }
                     } else if (!currentSyncCommand->getRxCommand().isEmpty()) {
@@ -1116,8 +1093,10 @@ void MainWindow::mainStateMachine()
                                 "%")) { //      Variable comodín
 
                             if (currentSyncCommand->getRxAnswers() == "%measure") {
+                                brush = currentSyncCommand->measuredItem->foreground();
                                 currentSyncCommand->measuredItem->setText(rxAnswers);
-                                currentSyncCommand->measuredItem->setTextColor("red");
+                                brush.setColor(Qt::red);
+                                currentSyncCommand->measuredItem->setForeground(brush);
                             }
                         }
                     }
@@ -1247,7 +1226,7 @@ void MainWindow::mainStateMachine()
             currentState = nextState;
     } while (globalCommandJump && !runingCommand);
 
-    if (saveDatabaseData && !ui->checkBox_2->isChecked()) {
+    if (saveDatabaseData && !debugMode) {
         QSqlDatabase db = QSqlDatabase::database("dbConexion");
         QSqlQuery query(db);
 
@@ -1514,15 +1493,8 @@ void MainWindow::on_actionLoad_triggered()
     refreshTable();
 
     //  Refresh buttons
-    ui->pushButton_opcional1->setText(jigsaw->asyncCommands[0]->getName());
-    ui->pushButton_opcional2->setText(jigsaw->asyncCommands[1]->getName());
-    ui->pushButton_opcional3->setText(jigsaw->asyncCommands[2]->getName());
-    ui->pushButton_opcional4->setText(jigsaw->asyncCommands[3]->getName());
-    ui->pushButton_opcional5->setText(jigsaw->asyncCommands[4]->getName());
-    ui->pushButton_opcional6->setText(jigsaw->asyncCommands[5]->getName());
-    ui->pushButton_opcional7->setText(jigsaw->asyncCommands[6]->getName());
-    ui->pushButton_opcional8->setText(jigsaw->asyncCommands[7]->getName());
-    ui->pushButton_opcional9->setText(jigsaw->asyncCommands[8]->getName());
+    asyncCommandListUi->setCommandList(&jigsaw->asyncCommands);
+    asyncCommandListUi->refreshButtons();
 
     //  Datos extra ajenos al archivo JSON pero necesarios a partir de ahora
     QSqlDatabase db = QSqlDatabase::database("dbConexion");
@@ -1533,11 +1505,19 @@ void MainWindow::on_actionLoad_triggered()
     if (query.exec()) {
         qDebug() << query.executedQuery();
         while (query.next())
-            idProducto = query.value(0).toInt();
+            idProducto = query.value("idProducto").toInt();
+    } else {
+        QMessageBox::warning(this, "Advertencia", "No fue posible conectarse con la base de datos.");
     }
 
-    commandEditor->setInterfaces(jigsaw->interfaces.keys());
+    commandEditor->setInterfaces(&jigsaw->interfaces);
     commandEditor->setCommands(jigsaw->commandList);
+    commandEditor->setTtyCommandsList(JigInterfaceTty::getDefaultCommands());
+    commandEditor->setUsbCommandsList(JigInterfacePickit::getDefaultCommands());
+    commandEditor->setPluginCommandsList(JigInterfacePlugin::getDefaultCommands());
+
+    commandListSubwindow->show();
+    commandListUi->show();
 
     profilePath = path;
     profileLoaded = true;
@@ -1562,81 +1542,10 @@ void MainWindow::on_actionSave_triggered()
     saveFile.close();
 }
 
-void MainWindow::on_actionInsert_triggered()
-{
-    JigSyncCommand *command = new JigSyncCommand(this);
-
-    command->setOnOk("0");
-    command->setOnError("1");
-    command->setTimeOut(3000.0);
-    command->setId("id");
-    command->setName("Nuevo Comando");
-
-    jigsaw->syncCommands.insert(tableRowReference, command);
-
-    ui->tableWidget->insertRow(tableRowReference);
-    ui->tableWidget->setItem(tableRowReference, 0, command->nameItem);
-    ui->tableWidget->setItem(tableRowReference, 1, command->minItem);
-    ui->tableWidget->setItem(tableRowReference, 2, command->measuredItem);
-    ui->tableWidget->setItem(tableRowReference, 3, command->maxItem);
-    ui->tableWidget->setItem(tableRowReference, 4, command->resultItem);
-}
-
-void MainWindow::on_actionEdit_triggered()
-{
-    commandEditor->loadCommand(tableRowReference, jigsaw->syncCommands[tableRowReference]);
-    commandEditor->show();
-}
-
-void MainWindow::on_actionRemove_triggered()
-{
-    jigsaw->syncCommands[tableRowReference]->deleteLater();
-    ui->tableWidget->removeRow(tableRowReference);
-    jigsaw->syncCommands.removeAt(tableRowReference);
-
-    qDebug() << tableRowReference;
-}
-
-void MainWindow::on_actionDuplicate_triggered()
-{
-    JigSyncCommand *duplicated = new JigSyncCommand(this);
-    JigSyncCommand *original = jigsaw->syncCommands[tableRowReference];
-    *duplicated = *original;
-
-    jigsaw->syncCommands.insert(tableRowReference, duplicated);
-
-    ui->tableWidget->insertRow(tableRowReference);
-    ui->tableWidget->setItem(tableRowReference, 0, duplicated->nameItem);
-    ui->tableWidget->setItem(tableRowReference, 1, duplicated->minItem);
-    ui->tableWidget->setItem(tableRowReference, 2, duplicated->measuredItem);
-    ui->tableWidget->setItem(tableRowReference, 3, duplicated->maxItem);
-    ui->tableWidget->setItem(tableRowReference, 4, duplicated->resultItem);
-}
-
 void MainWindow::on_actionEditInterface_triggered()
 {
     interfaceEditor->setInterfaces(jigsaw->interfaces.values());
     interfaceEditor->show();
-}
-
-void MainWindow::on_actionMove_Up_triggered()
-{
-    moveCommand(tableRowReference, tableRowReference - 1);
-}
-
-void MainWindow::on_actionMove_Down_triggered()
-{
-    moveCommand(tableRowReference, tableRowReference + 1);
-}
-
-void MainWindow::on_actionMove_First_triggered()
-{
-    moveCommand(tableRowReference, 0);
-}
-
-void MainWindow::on_actionMove_Last_triggered()
-{
-    moveCommand(tableRowReference, jigsaw->syncCommands.size() - 1);
 }
 
 void MainWindow::on_actionSaveAs_triggered()
@@ -1653,31 +1562,6 @@ void MainWindow::on_actionSaveAs_triggered()
     }
 }
 
-void MainWindow::on_tableWidget_itemChanged(QTableWidgetItem *item)
-{
-    if (item->column() == 0) {
-        if (item->checkState() == Qt::Checked) {
-            jigsaw->syncCommands[item->row()]->setEnabled(true);
-        } else {
-            jigsaw->syncCommands[item->row()]->setEnabled(false);
-        }
-    }
-}
-
-void MainWindow::on_checkBox_stateChanged(int arg1)
-{
-    qDebug() << arg1;
-    if (arg1 == Qt::Unchecked) {
-        foreach (JigSyncCommand *cmd, jigsaw->syncCommands) {
-            cmd->setEnabled(false);
-        }
-    } else if (arg1 == Qt::Checked) {
-        foreach (JigSyncCommand *cmd, jigsaw->syncCommands) {
-            cmd->setEnabled(true);
-        }
-    }
-}
-
 void MainWindow::on_actionAboutQt_triggered()
 {
     QMessageBox::aboutQt(this, "Acerca de Qt");
@@ -1689,31 +1573,6 @@ void MainWindow::on_actionAbout_triggered()
                        .arg(APP_VERSION);
 
     QMessageBox::about(this, "Acerca de TarpuqJIGsw", text);
-}
-
-void MainWindow::on_actionEditOptionalCommand_triggered()
-{
-    QMessageBox::information(this, "Editar comandos opcionales", "Proximamente");
-}
-
-void MainWindow::on_tableWidget_customContextMenuRequested(const QPoint &pos)
-{
-    QMenu menu(this);
-    QModelIndex cell = ui->tableWidget->indexAt(pos);
-    tableRowReference = cell.row();
-
-    if (cell.isValid()) {
-        menu.addAction(ui->actionEdit);
-        menu.addAction(ui->actionInsert);
-        menu.addAction(ui->actionRemove);
-        menu.addSeparator();
-        menu.addAction(ui->actionDuplicate);
-        menu.addAction(ui->actionMove_Up);
-        menu.addAction(ui->actionMove_Down);
-        menu.addAction(ui->actionMove_First);
-        menu.addAction(ui->actionMove_Last);
-        menu.exec(ui->tableWidget->mapToGlobal(pos));
-    }
 }
 
 void MainWindow::on_pushButton_clicked()
@@ -1736,56 +1595,26 @@ void MainWindow::on_lineEditProjectName_editingFinished()
     ui->lineEditProjectName->setReadOnly(true);
 }
 
-void MainWindow::on_checkBox_2_clicked(bool checked)
+void MainWindow::on_actionDebug_triggered()
 {
-    if (checked) {
+    if (!debugMode) {
         this->setEnabled(false);
         login->setEnabled(true);
         login->show();
+    } else {
+        debugMode = false;
+        QMessageBox::information(this, "Aviso", "Modo Debug desactivado");
     }
 }
 
-void MainWindow::on_pushButton_opcional1_clicked()
+void MainWindow::on_actionShowCommandList_triggered()
 {
-    processAsyncCommand(jigsaw->asyncCommands[0]);
+    commandListSubwindow->show();
+    commandListUi->show();
 }
 
-void MainWindow::on_pushButton_opcional2_clicked()
+void MainWindow::on_actionShowCommandOptional_triggered()
 {
-    processAsyncCommand(jigsaw->asyncCommands[1]);
-}
-
-void MainWindow::on_pushButton_opcional3_clicked()
-{
-    processAsyncCommand(jigsaw->asyncCommands[2]);
-}
-
-void MainWindow::on_pushButton_opcional4_clicked()
-{
-    processAsyncCommand(jigsaw->asyncCommands[3]);
-}
-
-void MainWindow::on_pushButton_opcional5_clicked()
-{
-    processAsyncCommand(jigsaw->asyncCommands[4]);
-}
-
-void MainWindow::on_pushButton_opcional6_clicked()
-{
-    processAsyncCommand(jigsaw->asyncCommands[5]);
-}
-
-void MainWindow::on_pushButton_opcional7_clicked()
-{
-    processAsyncCommand(jigsaw->asyncCommands[6]);
-}
-
-void MainWindow::on_pushButton_opcional8_clicked()
-{
-    processAsyncCommand(jigsaw->asyncCommands[7]);
-}
-
-void MainWindow::on_pushButton_opcional9_clicked()
-{
-    processAsyncCommand(jigsaw->asyncCommands[8]);
+    asyncCommandListSubwindow->show();
+    asyncCommandListUi->show();
 }

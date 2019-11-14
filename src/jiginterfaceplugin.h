@@ -5,6 +5,8 @@
 #include <QObject>
 #include <QProcess>
 
+static QStringList defaultPluginCommands = {"open", "close", "run"};
+
 class JigInterfacePlugin : public JigInterface
 {
 public:
@@ -25,6 +27,8 @@ public:
     bool isDone();
     int getResult();
     QStringList getAnswers();
+
+    static QStringList getDefaultCommands() {return defaultPluginCommands;}
 
 private slots:
     void processStdout(void);

@@ -73,36 +73,6 @@
     ],
     "interfaces": [
         {
-            "alias": "tester2",
-            "baudRate": 9600,
-            "dataBits": 8,
-            "parity": 0,
-            "pid": "2303",
-            "stopBits": 1,
-            "type": "tty",
-            "vid": "67b"
-        },
-        {
-            "alias": "novatecnicaFrameConfigurator",
-            "path": "/home/ingenieria/Descargas/29082019/novatecnicaConfigurator",
-            "type": "plugin"
-        },
-        {
-            "alias": "ftdiProgram",
-            "path": "/home/ingenieria/Descargas/29082019/ftdiProgram",
-            "type": "plugin"
-        },
-        {
-            "alias": "dut",
-            "baudRate": 9600,
-            "dataBits": 8,
-            "parity": 0,
-            "pid": "6015",
-            "stopBits": 1,
-            "type": "tty",
-            "vid": "403"
-        },
-        {
             "alias": "tester1",
             "baudRate": 115200,
             "dataBits": 8,
@@ -113,8 +83,9 @@
             "vid": "2341"
         },
         {
-            "alias": "app",
-            "type": "app"
+            "alias": "ftdiProgram",
+            "path": "/home/ingenieria/Descargas/29082019/ftdiProgram",
+            "type": "plugin"
         },
         {
             "alias": "pickit",
@@ -126,11 +97,40 @@
             "target": "PIC32MX370F512H",
             "type": "usb",
             "vccPin": "VCC"
+        },
+        {
+            "alias": "tester2",
+            "baudRate": 9600,
+            "dataBits": 8,
+            "parity": 0,
+            "pid": "2303",
+            "stopBits": 1,
+            "type": "tty",
+            "vid": "67b"
+        },
+        {
+            "alias": "app",
+            "type": "app"
+        },
+        {
+            "alias": "novatecnicaFrameConfigurator",
+            "path": "/home/ingenieria/Descargas/29082019/novatecnicaConfigurator",
+            "type": "plugin"
+        },
+        {
+            "alias": "dut",
+            "baudRate": 9600,
+            "dataBits": 8,
+            "parity": 0,
+            "pid": "6015",
+            "stopBits": 1,
+            "type": "tty",
+            "vid": "403"
         }
     ],
     "ipeConfigs": {
         "hexPath": "/home/ingenieria/Descargas/29082019/Aquaoff_Unificado_v190724_190830.hex",
-        "ipePath": "/opt/microchip/mplabx/v5.20/mplab_platform/mplab_ipe/ipecmd.sh"
+        "ipePath": "C:/Program Files (x86)/Microchip/MPLABX/v5.25/mplab_platform/mplab_ipe/ipecmd.exe"
     },
     "productCode": "TQ1000113-01-01",
     "productName": "Deshumidificador AquaOff",

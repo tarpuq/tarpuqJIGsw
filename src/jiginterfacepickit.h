@@ -5,6 +5,8 @@
 #include "pickit.h"
 #include <QObject>
 
+static QStringList defaultUsbCommands = {"program"};
+
 class JigInterfacePickit : public JigInterface
 {
 public:
@@ -13,6 +15,8 @@ public:
     int open();
     void close();
     void config();
+
+    static QStringList getDefaultCommands() {return defaultUsbCommands;}
 
 private:
     Pickit *ipe;

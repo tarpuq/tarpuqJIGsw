@@ -11,13 +11,8 @@ JigSaw::JigSaw(QObject *parent)
     : QObject(parent)
 {
     commandList.clear();
-    commandList << "program";
-    commandList << "usartXfer";
     commandList << "dialog";
     commandList << "deadtime";
-    commandList << "run";
-    commandList << "open";
-    commandList << "close";
     commandList << "loraserverapi";
     commandList << "end";
 }
@@ -163,7 +158,7 @@ int JigSaw::readProfile(QByteArray data)
             newCommand->setIsCrc16(asyncCommand["CRC16"].toBool());
             newCommand->setIsOptional(asyncCommand["OPT"].toBool());
 
-            if (commandList.indexOf(newCommand->getInterfaceCommand()) < 0) {
+            if(!isCommandValid(newCommand)){
                 error = QString("La prueba #%1:\"%2\" contiene un comando que no existe en la "
                                 "tabla de comandos")
                             .arg(arrayIterator.i + 1)
@@ -229,7 +224,7 @@ int JigSaw::readProfile(QByteArray data)
 
             newCommand->setMeasFormula(syncCommand["measFormula"].toString());
 
-            if (commandList.indexOf(newCommand->getInterfaceCommand()) < 0) {
+            if(!isCommandValid(newCommand)){
                 error = QString("La prueba #%1:\"%2\" contiene un comando que no existe en la "
                                 "tabla de comandos")
                             .arg(arrayIterator.i + 1)
@@ -522,4 +517,32 @@ QString JigSaw::getPickitTarget() const
 void JigSaw::setPickitTarget(const QString &value)
 {
     pickitTarget = value;
+}
+
+bool JigSaw::isCommandValid(JigSyncCommand *command)
+{
+    int index = 0;
+
+    switch (interfaces[command->getInterfaceName()]->getType()) {
+    case JigInterface::tty:
+        index = JigInterfaceTty::getDefaultCommands().indexOf(command->getInterfaceCommand());
+        break;
+    case JigInterface::usb:
+        index = JigInterfacePickit::getDefaultCommands().indexOf(command->getInterfaceCommand());
+        break;
+    case JigInterface::plugin:
+        index = JigInterfacePlugin::getDefaultCommands().indexOf(command->getInterfaceCommand());
+        break;
+    case JigInterface::app:
+        index = commandList.indexOf(command->getInterfaceCommand());
+        break;
+    default:
+        break;
+    }
+
+    if (index < 0) {
+        return false;
+    } else {
+        return true;
+    }
 }

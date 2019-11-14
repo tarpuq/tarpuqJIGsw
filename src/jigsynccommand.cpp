@@ -368,7 +368,8 @@ void JigSyncCommand::setState(const JigCommandState &value)
 {
     state = value;
 
-    this->resultItem->setTextColor("white");
+    QBrush brush = this->resultItem->foreground();
+    brush.setColor(Qt::white);
 
     switch (state) {
     case pending:
@@ -382,17 +383,19 @@ void JigSyncCommand::setState(const JigCommandState &value)
         break;
     case jump:
         resultItem->setText("Salta");
-        resultItem->setTextColor("blue");
+        brush.setColor(Qt::blue);
         break;
     case ok:
         resultItem->setText("OK");
-        resultItem->setTextColor("green");
+        brush.setColor(Qt::green);
         break;
     case fail:
         resultItem->setText("ERROR");
-        resultItem->setTextColor("red");
+        brush.setColor(Qt::red);
         break;
     }
+
+    this->resultItem->setForeground(brush);
 }
 
 bool JigSyncCommand::isTxCommand()
@@ -441,23 +444,31 @@ void JigSyncCommand::setMeasureParameters(double mean, double deviation, double 
 
 bool JigSyncCommand::setMeasure(double value)
 {
+    QBrush brush = this->measuredItem->foreground();
+    bool ans;
+
     double meas = value + this->offset;
 
     this->measuredItem->setText(QString::number(meas, 'f', 2));
 
     if ((this->min < meas) && (meas < this->max)) {
-        this->measuredItem->setTextColor("green");
-        return true;
+        brush.setColor(Qt::green);
+        ans = true;
     } else {
-        this->measuredItem->setTextColor("red");
-        return false;
+        brush.setColor(Qt::red);
+        ans = false;
     }
+
+    this->measuredItem->setForeground(brush);
+    return ans;
 }
 
 void JigSyncCommand::clearMeasure()
 {
+    QBrush brush = this->measuredItem->foreground();
     this->measuredItem->setText("0.00");
-    this->measuredItem->setTextColor("white");
+    brush.setColor(Qt::white);
+    this->measuredItem->setForeground(brush);
 }
 
 bool JigSyncCommand::isOnOk()

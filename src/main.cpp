@@ -9,7 +9,7 @@ int main(int argc, char *argv[])
     a.setApplicationVersion(APP_VERSION);
 
     MainWindow w;
-    w.show();
+    w.showMaximized();
 
     return a.exec();
 }

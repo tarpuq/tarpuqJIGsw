@@ -6,6 +6,8 @@
 
 #include <QSerialPort>
 
+static QStringList defaultTtyCommands = {"open", "close", "usartXfer"};
+
 class JigInterfaceTty : public JigInterface
 {
 public:
@@ -16,6 +18,8 @@ public:
     void config();
     bool isOpen();
     qint64 write(const QByteArray &data);
+
+    static QStringList getDefaultCommands() {return defaultTtyCommands;}
 
 private slots:
     void readData();

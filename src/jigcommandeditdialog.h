@@ -4,6 +4,7 @@
 #include "jigsynccommand.h"
 #include <QDialog>
 #include <QStringListModel>
+#include "jiginterface.h"
 
 namespace Ui {
 class JigCommandEditDialog;
@@ -19,26 +20,39 @@ public:
 
     void loadCommand(int index, JigSyncCommand *cmd);
 
-public slots:
-    void setInterfaces(QStringList interfaces);
+    void setTtyCommandsList(const QStringList &value);
 
-    void setCommands(QStringList commands);
+    void setPluginCommandsList(const QStringList &value);
+
+    void setUsbCommandsList(const QStringList &value);
+
+public slots:
+    void setInterfaces(QHash<QString, JigInterface *> *interfacesList);
+
+    void setCommands(QStringList commandsList);
 
 private slots:
 
     void on_buttonBox_accepted();
 
-    void on_doubleSpinBox_mean_valueChanged(double arg1);
+    void on_doubleSpinBox_meanFixed_valueChanged(double arg1);
 
     void on_doubleSpinBox_deviation_valueChanged(double arg1);
 
-    void on_checkBox_formula_toggled(bool checked);
+    void on_checkBox_meanFormula_toggled(bool checked);
+
+    void on_comboBox_tool_currentIndexChanged(const QString &arg1);
 
 private:
     Ui::JigCommandEditDialog *ui;
     JigSyncCommand *command;
-    QStringListModel *interfaces;
-    QStringListModel *commands;
+    QHash<QString, JigInterface *> *interfaces;
+    QStringListModel *interfacesList;
+    QStringListModel *commandsList;
+    QStringList ttyCommandsList;
+    QStringList pluginCommandsList;
+    QStringList usbCommandsList;
+    QStringList otherCommandsList;
     int index;
 };
 

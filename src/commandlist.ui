@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>CommandList</class>
+ <widget class="QWidget" name="CommandList">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>846</width>
+    <height>375</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Lista de Comandos</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QCheckBox" name="checkBox">
+     <property name="text">
+      <string>Activar/Desactivar todas las pruebas</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="GTableWidget" name="tableWidget">
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>16777215</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <spacer name="horizontalSpacer">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>40</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+  </layout>
+  <action name="actionEdit">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/prefix/icons/edit.svg</normaloff>:/prefix/icons/edit.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Editar</string>
+   </property>
+   <property name="toolTip">
+    <string>Editar comando</string>
+   </property>
+  </action>
+  <action name="actionInsert">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/prefix/icons/add-1.svg</normaloff>:/prefix/icons/add-1.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Insertar</string>
+   </property>
+   <property name="toolTip">
+    <string>Insertar comando</string>
+   </property>
+  </action>
+  <action name="actionRemove">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/prefix/icons/minus-1.svg</normaloff>:/prefix/icons/minus-1.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Eliminar</string>
+   </property>
+   <property name="toolTip">
+    <string>Eliminar comando</string>
+   </property>
+  </action>
+  <action name="actionMove_Up">
+   <property name="text">
+    <string>Mover Arriba</string>
+   </property>
+  </action>
+  <action name="actionMove_Down">
+   <property name="text">
+    <string>Mover Abajo</string>
+   </property>
+  </action>
+  <action name="actionDuplicate">
+   <property name="text">
+    <string>Duplicar</string>
+   </property>
+  </action>
+  <action name="actionMove_Last">
+   <property name="text">
+    <string>Mover al final</string>
+   </property>
+  </action>
+  <action name="actionMove_First">
+   <property name="text">
+    <string>Mover al inicio</string>
+   </property>
+  </action>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>GTableWidget</class>
+   <extends>QTableWidget</extends>
+   <header>src/gtablewidget.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="resources.qrc"/>
+ </resources>
+ <connections/>
+</ui>

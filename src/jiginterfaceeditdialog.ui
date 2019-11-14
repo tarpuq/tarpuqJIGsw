@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>848</width>
-    <height>354</height>
+    <height>364</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -68,7 +68,7 @@
    <item row="0" column="1">
     <widget class="QGroupBox" name="groupBox_2">
      <property name="title">
-      <string>Parametros</string>
+      <string>Parámetros</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
       <item row="0" column="0">

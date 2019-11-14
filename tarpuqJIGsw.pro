@@ -13,6 +13,8 @@ TARGET = tarpuqJIGsw
 TEMPLATE = app
 
 SOURCES += src/main.cpp\
+        src/asynccommandlist.cpp \
+        src/commandlist.cpp \
         src/gtablewidget.cpp \
         src/jigcommandeditdialog.cpp \
         src/jiginterfaceeditdialog.cpp \
@@ -28,6 +30,8 @@ SOURCES += src/main.cpp\
         src/loraserverapi.cpp
 
 HEADERS  += src/mainwindow.h \
+        src/asynccommandlist.h \
+        src/commandlist.h \
         src/gtablewidget.h \
         src/jigcommandeditdialog.h \
         src/jiginterfaceeditdialog.h \
@@ -42,6 +46,8 @@ HEADERS  += src/mainwindow.h \
         src/loraserverapi.h
 
 FORMS    += src/mainwindow.ui \
+            src/asynccommandlist.ui \
+            src/commandlist.ui \
             src/jigcommandeditdialog.ui \
             src/jiginterfaceeditdialog.ui \
             src/jiglogindialog.ui
@@ -75,7 +81,7 @@ DLLDESTDIR = $${DEST_DIRECTORY}
 DESTDIR    = $${DEST_DIRECTORY}
 
 # The application version
-VERSION = 20191003
+VERSION = 20191108
 
 # Define the preprocessor macro to get the application version in our application.
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"
