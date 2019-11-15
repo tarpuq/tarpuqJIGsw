@@ -39,7 +39,7 @@ JigSyncCommand::JigSyncCommand(QObject *parent)
 
     ifName = "";
     ifCommand = "";
-    ifArgs = "";
+    ifArguments = "";
     ifAnswer = "";
 
     setTxCommand("");
@@ -80,7 +80,7 @@ JigSyncCommand::JigSyncCommand(QObject *parent, const JigSyncCommand &cmd)
 
     ifName = cmd.ifName;
     ifCommand = cmd.ifCommand;
-    ifArgs = cmd.ifArgs;
+    ifArguments = cmd.ifArguments;
     ifAnswer = cmd.ifAnswer;
 
     setTxCommand(cmd.txCommand);
@@ -213,12 +213,12 @@ void JigSyncCommand::setInterfaceCommand(const QString &value)
 
 QString JigSyncCommand::getInterfaceArguments() const
 {
-    return ifArgs;
+    return ifArguments;
 }
 
 void JigSyncCommand::setInterfaceArguments(const QString &value)
 {
-    ifArgs = value;
+    ifArguments = value;
 }
 
 QString JigSyncCommand::getTxCommand() const

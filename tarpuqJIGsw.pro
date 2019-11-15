@@ -13,10 +13,12 @@ TARGET = tarpuqJIGsw
 TEMPLATE = app
 
 SOURCES += src/main.cpp\
+        src/console.cpp \
         src/asynccommandlist.cpp \
         src/commandeditdialog.cpp \
         src/gtablewidget.cpp \
         src/interfaceeditdialog.cpp \
+        src/jigasynccommand.cpp \
         src/jiginterfacepickit.cpp \
         src/jiginterfaceplugin.cpp \
         src/jiginterfacetty.cpp \
@@ -30,9 +32,11 @@ SOURCES += src/main.cpp\
         src/synccommandlist.cpp
 
 HEADERS  += src/mainwindow.h \
+        src/console.h \
         src/asynccommandlist.h \
         src/commandeditdialog.h \
         src/gtablewidget.h \
+        src/jigasynccommand.h \
         src/jiginterfaceeditdialog.h \
         src/jiginterfacepickit.h \
         src/jiginterfaceplugin.h \
@@ -46,6 +50,7 @@ HEADERS  += src/mainwindow.h \
         src/synccommandlist.h
 
 FORMS    += src/mainwindow.ui \
+            src/console.ui \
             src/asynccommandlist.ui \
             src/commandeditdialog.ui \
             src/interfaceeditdialog.ui \

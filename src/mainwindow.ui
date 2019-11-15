@@ -408,6 +408,7 @@
      <string>Herramientas</string>
     </property>
     <addaction name="actionDebug"/>
+    <addaction name="actionConsole"/>
    </widget>
    <widget class="QMenu" name="menuVer">
     <property name="title">
@@ -514,6 +515,11 @@
   <action name="actionShowCommandOptional">
    <property name="text">
     <string>Comandos opcionales</string>
+   </property>
+  </action>
+  <action name="actionConsole">
+   <property name="text">
+    <string>Consola</string>
    </property>
   </action>
  </widget>

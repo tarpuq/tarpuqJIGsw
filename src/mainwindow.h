@@ -24,6 +24,7 @@
 #include "jiglogindialog.h"
 #include "synccommandlist.h"
 #include "asynccommandlist.h"
+#include "console.h"
 
 namespace Ui {
 class MainWindow;
@@ -160,10 +161,13 @@ private slots:
 
     void on_actionShowCommandOptional_triggered();
 
+    void on_actionConsole_triggered();
+
 private:
     Ui::MainWindow *ui;
     CommandEditDialog *commandEditorDialog;
     InterfaceEditDialog *interfaceEditorDialog;
+    Console *console;
     LoginDialog *login;
 
     SyncCommandList *commandListUi;

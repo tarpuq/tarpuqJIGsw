@@ -34,6 +34,10 @@ AsyncCommandList::AsyncCommandList(QWidget *parent)
 
     ui->pushButton_opcional9->setContextMenuPolicy(Qt::ActionsContextMenu);
     ui->pushButton_opcional9->addAction(ui->actionEditOptionalCommand);
+
+    this->commandList = nullptr;
+
+    refreshButtons();
 }
 
 AsyncCommandList::~AsyncCommandList()
@@ -98,27 +102,50 @@ void AsyncCommandList::setCommandList(QList<JigSyncCommand *> *value)
 
 void AsyncCommandList::refreshButtons()
 {
-    if (commandList->size() > 0) {
-        ui->pushButton_opcional1->setText(commandList->at(0)->getName());
-        ui->pushButton_opcional2->setText(commandList->at(1)->getName());
-        ui->pushButton_opcional3->setText(commandList->at(2)->getName());
-        ui->pushButton_opcional4->setText(commandList->at(3)->getName());
-        ui->pushButton_opcional5->setText(commandList->at(4)->getName());
-        ui->pushButton_opcional6->setText(commandList->at(5)->getName());
-        ui->pushButton_opcional7->setText(commandList->at(6)->getName());
-        ui->pushButton_opcional8->setText(commandList->at(7)->getName());
-        ui->pushButton_opcional9->setText(commandList->at(8)->getName());
-        ui->pushButton_opcional1->setEnabled(true);
-        ui->pushButton_opcional2->setEnabled(true);
-        ui->pushButton_opcional3->setEnabled(true);
-        ui->pushButton_opcional4->setEnabled(true);
-        ui->pushButton_opcional5->setEnabled(true);
-        ui->pushButton_opcional6->setEnabled(true);
-        ui->pushButton_opcional7->setEnabled(true);
-        ui->pushButton_opcional8->setEnabled(true);
-        ui->pushButton_opcional9->setEnabled(true);
+    if (commandList) {
+        if (commandList->size() > 0) {
+            ui->pushButton_opcional1->setText(commandList->at(0)->getName());
+            ui->pushButton_opcional2->setText(commandList->at(1)->getName());
+            ui->pushButton_opcional3->setText(commandList->at(2)->getName());
+            ui->pushButton_opcional4->setText(commandList->at(3)->getName());
+            ui->pushButton_opcional5->setText(commandList->at(4)->getName());
+            ui->pushButton_opcional6->setText(commandList->at(5)->getName());
+            ui->pushButton_opcional7->setText(commandList->at(6)->getName());
+            ui->pushButton_opcional8->setText(commandList->at(7)->getName());
+            ui->pushButton_opcional9->setText(commandList->at(8)->getName());
+            ui->pushButton_opcional1->setEnabled(true);
+            ui->pushButton_opcional2->setEnabled(true);
+            ui->pushButton_opcional3->setEnabled(true);
+            ui->pushButton_opcional4->setEnabled(true);
+            ui->pushButton_opcional5->setEnabled(true);
+            ui->pushButton_opcional6->setEnabled(true);
+            ui->pushButton_opcional7->setEnabled(true);
+            ui->pushButton_opcional8->setEnabled(true);
+            ui->pushButton_opcional9->setEnabled(true);
+        } else {
+            QMessageBox::warning(this,
+                                 "Advertencia",
+                                 "El perfil abierto no tiene comandos opcionales.");
+            ui->pushButton_opcional1->setText("Opcional 1");
+            ui->pushButton_opcional2->setText("Opcional 2");
+            ui->pushButton_opcional3->setText("Opcional 3");
+            ui->pushButton_opcional4->setText("Opcional 4");
+            ui->pushButton_opcional5->setText("Opcional 5");
+            ui->pushButton_opcional6->setText("Opcional 6");
+            ui->pushButton_opcional7->setText("Opcional 7");
+            ui->pushButton_opcional8->setText("Opcional 8");
+            ui->pushButton_opcional9->setText("Opcional 9");
+            ui->pushButton_opcional1->setEnabled(false);
+            ui->pushButton_opcional2->setEnabled(false);
+            ui->pushButton_opcional3->setEnabled(false);
+            ui->pushButton_opcional4->setEnabled(false);
+            ui->pushButton_opcional5->setEnabled(false);
+            ui->pushButton_opcional6->setEnabled(false);
+            ui->pushButton_opcional7->setEnabled(false);
+            ui->pushButton_opcional8->setEnabled(false);
+            ui->pushButton_opcional9->setEnabled(false);
+        }
     } else {
-        QMessageBox::warning(this, "Advertencia", "El perfil abierto no tiene comandos opcionales.");
         ui->pushButton_opcional1->setText("Opcional 1");
         ui->pushButton_opcional2->setText("Opcional 2");
         ui->pushButton_opcional3->setText("Opcional 3");

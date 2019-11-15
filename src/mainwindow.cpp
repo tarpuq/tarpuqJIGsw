@@ -80,6 +80,7 @@ MainWindow::MainWindow(QWidget *parent)
     //      Editors and Validators
     commandEditorDialog = new CommandEditDialog(this);
     interfaceEditorDialog = new InterfaceEditDialog(this);
+    console = new Console(this);
     login = new LoginDialog(this);
 
     //      JIGsaw
@@ -307,12 +308,14 @@ QByteArray MainWindow::buildFrameToSend(JigSyncCommand *command)
 void MainWindow::processAsyncCommand(JigSyncCommand *asyncCmd)
 {
     QString ifName;
+    QString ifCmd;
     JigInterface *iface;
 
     ifName = asyncCmd->getInterfaceName();
+    ifCmd = asyncCmd->getInterfaceCommand();
     iface = jigsaw->interfaces[ifName];
 
-    if (asyncCmd->getInterfaceCommand() == "open") {
+    if (ifCmd == "open") {
         if (!iface->isOpen()) {
             int ans = iface->open();
 
@@ -329,7 +332,7 @@ void MainWindow::processAsyncCommand(JigSyncCommand *asyncCmd)
                 return;
             }
         }
-    } else if (asyncCmd->getInterfaceCommand() == "usartXfer") {
+    } else if (ifCmd == "usartXfer") {
         QByteArray bCommand;
         QByteArray command2Send;
 
@@ -1617,4 +1620,9 @@ void MainWindow::on_actionShowCommandOptional_triggered()
 {
     asyncCommandListSubwindow->show();
     asyncCommandListUi->show();
+}
+
+void MainWindow::on_actionConsole_triggered()
+{
+    console->show();
 }

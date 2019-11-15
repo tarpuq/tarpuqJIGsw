@@ -119,7 +119,7 @@ private:
 
     QString ifName;
     QString ifCommand;
-    QString ifArgs;
+    QString ifArguments;
     QString ifAnswer;
 
     QString txCommand;
