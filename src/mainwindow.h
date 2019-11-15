@@ -19,7 +19,7 @@
 #include "jigsaw.h"
 #include "loraserverapi.h"
 #include "pickit.h"
-#include "jigcommandeditdialog.h"
+#include "commandeditdialog.h"
 #include "jiginterfaceeditdialog.h"
 #include "jiglogindialog.h"
 #include "synccommandlist.h"
@@ -162,9 +162,9 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-    JigCommandEditDialog *commandEditorDialog;
-    JigInterfaceEditDialog *interfaceEditorDialog;
-    JigLoginDialog *login;
+    CommandEditDialog *commandEditorDialog;
+    InterfaceEditDialog *interfaceEditorDialog;
+    LoginDialog *login;
 
     SyncCommandList *commandListUi;
     QMdiSubWindow *commandListSubwindow;

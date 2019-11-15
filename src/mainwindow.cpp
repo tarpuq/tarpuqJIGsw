@@ -78,9 +78,9 @@ MainWindow::MainWindow(QWidget *parent)
     serialBuffer = new QByteArray();
 
     //      Editors and Validators
-    commandEditorDialog = new JigCommandEditDialog(this);
-    interfaceEditorDialog = new JigInterfaceEditDialog(this);
-    login = new JigLoginDialog(this);
+    commandEditorDialog = new CommandEditDialog(this);
+    interfaceEditorDialog = new InterfaceEditDialog(this);
+    login = new LoginDialog(this);
 
     //      JIGsaw
     jigsaw = new JigSaw(this);
@@ -138,7 +138,7 @@ MainWindow::MainWindow(QWidget *parent)
     //  TimeOut Timer
     connect(&timerTimeOut, &QTimer::timeout, [this]() { this->timerTimeOutDone = true; });
 
-    connect(login, &JigLoginDialog::isLogin, [this](bool ans) {
+    connect(login, &LoginDialog::isLogin, [this](bool ans) {
         this->setEnabled(true);
         if (ans) {
             debugMode = true;
@@ -148,8 +148,8 @@ MainWindow::MainWindow(QWidget *parent)
             QMessageBox::information(this, "Aviso", "Contraseña incorrecta");
         }
     });
-    connect(login, &JigLoginDialog::finished, [this]() { this->setEnabled(true); });
-    connect(login, &JigLoginDialog::rejected, [this]() { this->setEnabled(true); });
+    connect(login, &LoginDialog::finished, [this]() { this->setEnabled(true); });
+    connect(login, &LoginDialog::rejected, [this]() { this->setEnabled(true); });
 
     profileLoaded = false;
 

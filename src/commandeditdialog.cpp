@@ -1,11 +1,11 @@
-#include "jigcommandeditdialog.h"
-#include "ui_jigcommandeditdialog.h"
+#include "commandeditdialog.h"
+#include "ui_commandeditdialog.h"
 
 #include <QDebug>
 
-JigCommandEditDialog::JigCommandEditDialog(QWidget *parent)
+CommandEditDialog::CommandEditDialog(QWidget *parent)
     : QDialog(parent)
-    , ui(new Ui::JigCommandEditDialog)
+    , ui(new Ui::CommandEditDialog)
 {
     ui->setupUi(this);
 
@@ -18,12 +18,12 @@ JigCommandEditDialog::JigCommandEditDialog(QWidget *parent)
     ui->comboBox_command->setModel(commandsList);
 }
 
-JigCommandEditDialog::~JigCommandEditDialog()
+CommandEditDialog::~CommandEditDialog()
 {
     delete ui;
 }
 
-void JigCommandEditDialog::loadCommand(int index, JigSyncCommand *cmd)
+void CommandEditDialog::loadCommand(int index, JigSyncCommand *cmd)
 {
     this->index = index;
     this->command = cmd;
@@ -32,9 +32,6 @@ void JigCommandEditDialog::loadCommand(int index, JigSyncCommand *cmd)
     ui->comboBox_command->setCurrentText(command->getInterfaceCommand());
     ui->lineEdit_ifArgs->setText(command->getInterfaceArguments());
     ui->lineEdit_ifAns->setText(command->getInterfaceAnswer());
-    ui->doubleSpinBox_deviation->setValue(command->deviation);
-    ui->doubleSpinBox_meanFixed->setValue(command->mean);
-    ui->doubleSpinBox_offset->setValue(command->offset);
     ui->lineEdit_messageNotice->setText(command->messageNotice);
     ui->checkBox_retry->setChecked(command->retry);
     ui->checkBox_end->setChecked(command->end);
@@ -45,10 +42,6 @@ void JigCommandEditDialog::loadCommand(int index, JigSyncCommand *cmd)
     ui->lineEdit_id->setText(command->getId());
     ui->lineEdit_description->setText(command->getDescription());
     ui->checkBox_runOnJump->setChecked(command->runOnJump);
-    ui->checkBox_meanFormula->setChecked(command->getUseMeanFormula());
-    ui->lineEdit_meanFormula->setText(command->getMeanFormula());
-    ui->lineEdit_meanFormula->setEnabled(command->getUseMeanFormula());
-    ui->lineEdit_measFormula->setText(command->getMeasFormula());
 
     //      USART
     ui->checkBox_cr->setChecked(command->getIsCr());
@@ -63,9 +56,18 @@ void JigCommandEditDialog::loadCommand(int index, JigSyncCommand *cmd)
     ui->lineEdit_onError->setText(command->getOnError());
     ui->lineEdit_messageOnOk->setText(command->messageOnOk);
     ui->lineEdit_messageOnError->setText(command->messageOnError);
+
+    //  MEASURE
+    ui->doubleSpinBox_deviation->setValue(command->deviation);
+    ui->doubleSpinBox_meanFixed->setValue(command->mean);
+    ui->doubleSpinBox_offset->setValue(command->offset);
+    ui->checkBox_meanFormula->setChecked(command->getUseMeanFormula());
+    ui->lineEdit_meanFormula->setText(command->getMeanFormula());
+    ui->lineEdit_meanFormula->setEnabled(command->getUseMeanFormula());
+    ui->lineEdit_measFormula->setText(command->getMeasFormula());
 }
 
-void JigCommandEditDialog::on_buttonBox_accepted()
+void CommandEditDialog::on_buttonBox_accepted()
 {
     command->setInterfaceName(ui->comboBox_tool->currentText());
     command->setInterfaceCommand(ui->comboBox_command->currentText());
@@ -80,14 +82,9 @@ void JigCommandEditDialog::on_buttonBox_accepted()
     command->setName(ui->lineEdit_codeName->text());
     command->setId(ui->lineEdit_id->text());
     command->setDescription(ui->lineEdit_description->text());
-    command->setMeasureParameters(ui->doubleSpinBox_meanFixed->value(),
-                                  ui->doubleSpinBox_deviation->value(), ui->doubleSpinBox_offset->value());
     command->runOnJump = ui->checkBox_runOnJump->isChecked();
-    command->setUseMeanFormula(ui->checkBox_meanFormula->isChecked());
-    command->setMeanFormula(ui->lineEdit_meanFormula->text());
-    command->setMeasFormula(ui->lineEdit_measFormula->text());
 
-    //      USART
+    //  USART
     command->setIsCr(ui->checkBox_cr->isChecked());
     command->setIsLf(ui->checkBox_lf->isChecked());
     command->setIsCrc16(ui->checkBox_crc16->isChecked());
@@ -101,36 +98,44 @@ void JigCommandEditDialog::on_buttonBox_accepted()
     command->messageOnOk = ui->lineEdit_messageOnOk->text();
     command->messageOnError = ui->lineEdit_messageOnError->text();
 
+    //  MEASURE
+    command->setUseMeanFormula(ui->checkBox_meanFormula->isChecked());
+    command->setMeanFormula(ui->lineEdit_meanFormula->text());
+    command->setMeasFormula(ui->lineEdit_measFormula->text());
+    command->setMeasureParameters(ui->doubleSpinBox_meanFixed->value(),
+                                  ui->doubleSpinBox_deviation->value(),
+                                  ui->doubleSpinBox_offset->value());
+
     command->setState(JigSyncCommand::pending);
 }
 
-void JigCommandEditDialog::setInterfaces(QHash<QString, JigInterface *> *interfaces)
+void CommandEditDialog::setInterfaces(QHash<QString, JigInterface *> *interfaces)
 {
     this->interfaces = interfaces;
     interfacesList->setStringList(this->interfaces->keys());
 }
 
-void JigCommandEditDialog::setCommands(QStringList commands)
+void CommandEditDialog::setCommands(QStringList commands)
 {
     otherCommandsList = commands;
 }
 
-void JigCommandEditDialog::setTtyCommandsList(const QStringList &value)
+void CommandEditDialog::setTtyCommandsList(const QStringList &value)
 {
     ttyCommandsList = value;
 }
 
-void JigCommandEditDialog::setUsbCommandsList(const QStringList &value)
+void CommandEditDialog::setUsbCommandsList(const QStringList &value)
 {
     usbCommandsList = value;
 }
 
-void JigCommandEditDialog::setPluginCommandsList(const QStringList &value)
+void CommandEditDialog::setPluginCommandsList(const QStringList &value)
 {
     pluginCommandsList = value;
 }
 
-void JigCommandEditDialog::on_doubleSpinBox_meanFixed_valueChanged(double arg1)
+void CommandEditDialog::on_doubleSpinBox_meanFixed_valueChanged(double arg1)
 {
     qDebug() << arg1;
 
@@ -141,7 +146,7 @@ void JigCommandEditDialog::on_doubleSpinBox_meanFixed_valueChanged(double arg1)
     ui->lineEdit_measMin->setText(QString::number(min));
 }
 
-void JigCommandEditDialog::on_doubleSpinBox_deviation_valueChanged(double arg1)
+void CommandEditDialog::on_doubleSpinBox_deviation_valueChanged(double arg1)
 {
     qDebug() << arg1;
 
@@ -152,13 +157,13 @@ void JigCommandEditDialog::on_doubleSpinBox_deviation_valueChanged(double arg1)
     ui->lineEdit_measMin->setText(QString::number(min));
 }
 
-void JigCommandEditDialog::on_checkBox_meanFormula_toggled(bool checked)
+void CommandEditDialog::on_checkBox_meanFormula_toggled(bool checked)
 {
     ui->lineEdit_meanFormula->setEnabled(checked);
     ui->doubleSpinBox_meanFixed->setEnabled(!checked);
 }
 
-void JigCommandEditDialog::on_comboBox_tool_currentIndexChanged(const QString &arg1)
+void CommandEditDialog::on_comboBox_tool_currentIndexChanged(const QString &arg1)
 {
     JigInterface::JigInterfaceType type;
     type = interfaces->value(arg1)->getType();

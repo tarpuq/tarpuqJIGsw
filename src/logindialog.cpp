@@ -1,19 +1,19 @@
 #include "jiglogindialog.h"
-#include "ui_jiglogindialog.h"
+#include "ui_logindialog.h"
 
-JigLoginDialog::JigLoginDialog(QWidget *parent) :
+LoginDialog::LoginDialog(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::JigLoginDialog)
+    ui(new Ui::LoginDialog)
 {
     ui->setupUi(this);
 }
 
-JigLoginDialog::~JigLoginDialog()
+LoginDialog::~LoginDialog()
 {
     delete ui;
 }
 
-void JigLoginDialog::on_buttonBox_accepted()
+void LoginDialog::on_buttonBox_accepted()
 {
     if(ui->lineEdit->text() == "tarpuqPass"){
         emit isLogin(true);

@@ -1,12 +1,12 @@
 #include "jiginterfaceeditdialog.h"
-#include "ui_jiginterfaceeditdialog.h"
+#include "ui_interfaceeditdialog.h"
 
 #include <QDebug>
 #include <QHash>
 
-JigInterfaceEditDialog::JigInterfaceEditDialog(QWidget *parent)
+InterfaceEditDialog::InterfaceEditDialog(QWidget *parent)
     : QDialog(parent)
-    , ui(new Ui::JigInterfaceEditDialog)
+    , ui(new Ui::InterfaceEditDialog)
 {
     ui->setupUi(this);
 
@@ -25,12 +25,12 @@ JigInterfaceEditDialog::JigInterfaceEditDialog(QWidget *parent)
     ui->comboBox->setCurrentIndex(0);
 }
 
-JigInterfaceEditDialog::~JigInterfaceEditDialog()
+InterfaceEditDialog::~InterfaceEditDialog()
 {
     delete ui;
 }
 
-void JigInterfaceEditDialog::setInterfaces(QList<JigInterface *> interfaces)
+void InterfaceEditDialog::setInterfaces(QList<JigInterface *> interfaces)
 {
     this->interfaces = interfaces;
     typesIndex.clear();
@@ -44,7 +44,7 @@ void JigInterfaceEditDialog::setInterfaces(QList<JigInterface *> interfaces)
     }
 }
 
-void JigInterfaceEditDialog::on_listWidget_currentRowChanged(int currentRow)
+void InterfaceEditDialog::on_listWidget_currentRowChanged(int currentRow)
 {
     if (currentRow >= 0) {
         this->currentInterfaceIndex = currentRow;
@@ -73,12 +73,12 @@ void JigInterfaceEditDialog::on_listWidget_currentRowChanged(int currentRow)
     }
 }
 
-void JigInterfaceEditDialog::on_comboBox_activated(int index)
+void InterfaceEditDialog::on_comboBox_activated(int index)
 {
     typesIndex[currentInterfaceIndex] = static_cast<JigInterface::JigInterfaceType>(index + 1);
 }
 
-void JigInterfaceEditDialog::on_buttonBox_accepted()
+void InterfaceEditDialog::on_buttonBox_accepted()
 {
     for (int i = 0; i < interfaces.size(); i++) {
         interfaces[i]->setType(typesIndex[i]);
@@ -86,7 +86,7 @@ void JigInterfaceEditDialog::on_buttonBox_accepted()
     }
 }
 
-void JigInterfaceEditDialog::on_tableWidget_cellChanged(int row, int column)
+void InterfaceEditDialog::on_tableWidget_cellChanged(int row, int column)
 {
     if (column == 1) {
         QString key = ui->tableWidget->item(row, 0)->text();

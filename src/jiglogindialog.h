@@ -4,16 +4,16 @@
 #include <QDialog>
 
 namespace Ui {
-class JigLoginDialog;
+class LoginDialog;
 }
 
-class JigLoginDialog : public QDialog
+class LoginDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit JigLoginDialog(QWidget *parent = nullptr);
-    ~JigLoginDialog();
+    explicit LoginDialog(QWidget *parent = nullptr);
+    ~LoginDialog();
 
 signals:
     void isLogin(bool value);
@@ -22,7 +22,7 @@ private slots:
     void on_buttonBox_accepted();
 
 private:
-    Ui::JigLoginDialog *ui;
+    Ui::LoginDialog *ui;
 };
 
 #endif // JIGPASSWORDVALIDATOR_H

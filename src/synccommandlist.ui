@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>CommandList</class>
- <widget class="QWidget" name="CommandList">
+ <class>SyncCommandList</class>
+ <widget class="QWidget" name="SyncCommandList">
   <property name="geometry">
    <rect>
     <x>0</x>

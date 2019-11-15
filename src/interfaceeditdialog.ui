@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>JigInterfaceEditDialog</class>
- <widget class="QDialog" name="JigInterfaceEditDialog">
+ <class>InterfaceEditDialog</class>
+ <widget class="QDialog" name="InterfaceEditDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -108,7 +108,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>JigInterfaceEditDialog</receiver>
+   <receiver>InterfaceEditDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -124,7 +124,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>JigInterfaceEditDialog</receiver>
+   <receiver>InterfaceEditDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

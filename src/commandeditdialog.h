@@ -7,16 +7,16 @@
 #include "jiginterface.h"
 
 namespace Ui {
-class JigCommandEditDialog;
+class CommandEditDialog;
 }
 
-class JigCommandEditDialog : public QDialog
+class CommandEditDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit JigCommandEditDialog(QWidget *parent = nullptr);
-    ~JigCommandEditDialog();
+    explicit CommandEditDialog(QWidget *parent = nullptr);
+    ~CommandEditDialog();
 
     void loadCommand(int index, JigSyncCommand *cmd);
 
@@ -44,7 +44,7 @@ private slots:
     void on_comboBox_tool_currentIndexChanged(const QString &arg1);
 
 private:
-    Ui::JigCommandEditDialog *ui;
+    Ui::CommandEditDialog *ui;
     JigSyncCommand *command;
     QHash<QString, JigInterface *> *interfaces;
     QStringListModel *interfacesList;

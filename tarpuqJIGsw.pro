@@ -14,16 +14,16 @@ TEMPLATE = app
 
 SOURCES += src/main.cpp\
         src/asynccommandlist.cpp \
+        src/commandeditdialog.cpp \
         src/gtablewidget.cpp \
-        src/jigcommandeditdialog.cpp \
-        src/jiginterfaceeditdialog.cpp \
+        src/interfaceeditdialog.cpp \
         src/jiginterfacepickit.cpp \
         src/jiginterfaceplugin.cpp \
         src/jiginterfacetty.cpp \
         src/jiginterface.cpp \
-        src/jiglogindialog.cpp \
         src/jigsaw.cpp \
         src/jigsynccommand.cpp \
+        src/logindialog.cpp \
         src/mainwindow.cpp \
         src/pickit.cpp \
         src/loraserverapi.cpp \
@@ -31,8 +31,8 @@ SOURCES += src/main.cpp\
 
 HEADERS  += src/mainwindow.h \
         src/asynccommandlist.h \
+        src/commandeditdialog.h \
         src/gtablewidget.h \
-        src/jigcommandeditdialog.h \
         src/jiginterfaceeditdialog.h \
         src/jiginterfacepickit.h \
         src/jiginterfaceplugin.h \
@@ -47,10 +47,10 @@ HEADERS  += src/mainwindow.h \
 
 FORMS    += src/mainwindow.ui \
             src/asynccommandlist.ui \
-            src/commandlist.ui \
-            src/jigcommandeditdialog.ui \
-            src/jiginterfaceeditdialog.ui \
-            src/jiglogindialog.ui
+            src/commandeditdialog.ui \
+            src/interfaceeditdialog.ui \
+            src/logindialog.ui \
+            src/synccommandlist.ui
 
 RESOURCES += \
     src/resources.qrc

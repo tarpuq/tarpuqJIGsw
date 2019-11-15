@@ -6,7 +6,7 @@
 #include <QList>
 
 #include "jigsynccommand.h"
-#include "jigcommandeditdialog.h"
+#include "commandeditdialog.h"
 
 namespace Ui {
 class SyncCommandList;

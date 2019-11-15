@@ -1,5 +1,5 @@
 #include "synccommandlist.h"
-#include "ui_commandlist.h"
+#include "ui_synccommandlist.h"
 
 #include <QMenu>
 #include <QMdiSubWindow>

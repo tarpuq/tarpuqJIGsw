@@ -10,16 +10,16 @@
 #include <QTableWidgetItem>
 
 namespace Ui {
-class JigInterfaceEditDialog;
+class InterfaceEditDialog;
 }
 
-class JigInterfaceEditDialog : public QDialog
+class InterfaceEditDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit JigInterfaceEditDialog(QWidget *parent = nullptr);
-    ~JigInterfaceEditDialog();
+    explicit InterfaceEditDialog(QWidget *parent = nullptr);
+    ~InterfaceEditDialog();
 
     QList<JigInterface *> interfaces;
     QList<QHash<QString, QVariant>> parametersIndex;
@@ -38,7 +38,7 @@ private slots:
     void on_tableWidget_cellChanged(int row, int column);
 
 private:
-    Ui::JigInterfaceEditDialog *ui;
+    Ui::InterfaceEditDialog *ui;
     QList<JigInterface::JigInterfaceType> typesIndex;
     QStringListModel *types;
 };
