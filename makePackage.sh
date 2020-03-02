@@ -7,7 +7,7 @@ cp -pR ./res/DEBIAN/ ./deb_package
 cp ./res/tarpuqJIGsw.json ./deb_package/usr/local/etc/tarpuqJIGsw.json
 cp ./res/tarpuqJIGsw.desktop ./deb_package/usr/local/share/applications
 cp ./src/icons/tq.png ./deb_package/usr/local/share/icons
-cp ./linux/release/tarpuqJIGsw ./deb_package/usr/local/bin
+cp ./linux/release/bin/tarpuqJIGsw ./deb_package/usr/local/bin
 chmod -R 755 ./deb_package
 dpkg-deb --build ./deb_package tarpuqJIGsw.deb
 mkdir -p ./linux/package

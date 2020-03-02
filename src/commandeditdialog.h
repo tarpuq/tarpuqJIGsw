@@ -4,6 +4,7 @@
 #include "jigsynccommand.h"
 #include <QDialog>
 #include <QStringListModel>
+
 #include "jiginterface.h"
 
 namespace Ui {
@@ -29,7 +30,7 @@ public:
 public slots:
     void setInterfaces(QHash<QString, JigInterface *> *interfacesList);
 
-    void setCommands(QStringList commandsList);
+    void setAppCommands(QStringList commandsList);
 
 private slots:
 
@@ -49,10 +50,10 @@ private:
     QHash<QString, JigInterface *> *interfaces;
     QStringListModel *interfacesList;
     QStringListModel *commandsList;
-    QStringList ttyCommandsList;
-    QStringList pluginCommandsList;
-    QStringList usbCommandsList;
-    QStringList otherCommandsList;
+    QStringList ttyCommandList;
+    QStringList pluginCommandList;
+    QStringList usbCommandList;
+    QStringList appCommandList;
     int index;
 };
 

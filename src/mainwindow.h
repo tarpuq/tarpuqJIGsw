@@ -16,15 +16,18 @@
 
 #include "jigsynccommand.h"
 #include "jiginterface.h"
-#include "jigsaw.h"
+#include "jigprofile.h"
 #include "loraserverapi.h"
 #include "pickit.h"
 #include "commandeditdialog.h"
 #include "jiginterfaceeditdialog.h"
 #include "jiglogindialog.h"
-#include "synccommandlist.h"
-#include "asynccommandlist.h"
+#include "synccommandlistform.h"
+#include "asynccommandlistform.h"
+#include "dutsummaryform.h"
 #include "console.h"
+#include "duteditdialog.h"
+#include "dutinfoform.h"
 
 namespace Ui {
 class MainWindow;
@@ -106,30 +109,29 @@ public:
 
     QByteArray buildFrameToSend(JigSyncCommand *command);
 
+    bool pushDatabaseRecord(DutInfoForm *dutInfo, qint64 timeElapsed);
+
 public slots:
     void processAsyncCommand(JigSyncCommand *asyncCmd);
 
-protected slots:
-    void refreshTable();
+    void updateDutInfo();
+
+    void setStateReadyToStart();
+
+    void dutChanged(bool state);
 
 private slots:
-    void mainStateMachine();
+    void processSyncCommand();
 
     void ipeAppMessage();
 
     void ipeAppWarning();
 
-    void on_lineEdit_numeroSerie_returnPressed();
-
-    void on_pbIpe_clicked();
-
-    void on_pbPicKit_clicked();
-
     void on_pbHex_clicked();
 
-    void on_lineEdit_PICKitBUR_returnPressed();
-
     void outputInfo(QString info, infoType type);
+
+    void debugInfo(QString info, infoType type);
 
     void on_pushButtonStart_clicked();
 
@@ -147,14 +149,6 @@ private slots:
 
     void on_actionAbout_triggered();
 
-    void on_pushButton_clicked();
-
-    void on_pushButton_2_clicked();
-
-    void on_lineEditTarpuqCode_editingFinished();
-
-    void on_lineEditProjectName_editingFinished();
-
     void on_actionDebug_triggered();
 
     void on_actionShowCommandList_triggered();
@@ -163,17 +157,21 @@ private slots:
 
     void on_actionConsole_triggered();
 
+    void on_actionNew_triggered();
+
+    void on_actionEditDut_triggered();
+
+    void on_actionShowDutInformation_triggered();
+
+    void on_actionShowMessages_triggered();
+
 private:
     Ui::MainWindow *ui;
     CommandEditDialog *commandEditorDialog;
     InterfaceEditDialog *interfaceEditorDialog;
+    DutEditDialog *dutEditorDialog;
     Console *console;
     LoginDialog *login;
-
-    SyncCommandList *commandListUi;
-    QMdiSubWindow *commandListSubwindow;
-    AsyncCommandList *asyncCommandListUi;
-    QMdiSubWindow *asyncCommandListSubwindow;
 
     QTimer stateMachineTimer;
     QFile script;
@@ -209,10 +207,9 @@ private:
     uint8_t connectState;
 
     LoraServerApi *device;
-    QString eui;
-    QString reportFails;
-    QString reportComment;
-    QString reportMeasure;
+    QStringList reportFails;
+    QStringList reportComment;
+    QStringList reportMeasure;
 
     int currentCommandIndex;
 
@@ -227,8 +224,6 @@ private:
 
     QHash<QString, QByteArray> wildcard;
 
-    JigSyncCommand *currentSyncCommand;
-
     testResult lastCommandResult;
 
     QString ifCommand;
@@ -237,7 +232,8 @@ private:
     QString ifAlias;
     JigInterface *interface;
 
-    JigSaw *jigsaw;
+    JigProfile *profile;
+    JigSyncCommand *currentSyncCommand;
 
     QString profilePath;
 
@@ -251,6 +247,9 @@ private:
 
     bool profileLoaded;
     bool debugMode;
+
+    QList<DutInfoForm *> *dutList;
+    QList<bool> dutStatus;
 };
 
 #endif // MAINWINDOW_H

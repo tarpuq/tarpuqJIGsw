@@ -15,6 +15,8 @@ int JigInterfaceTty::open()
     int ans = 0;
 
     sPort->setPortName("");
+    rxBuffer.clear();
+    dataOk = false;
 
     qDebug() << QString("Buscando dispositivo con vid=%1, pid=%2").arg(QString::number(this->vid,16)).arg(QString::number(this->pid,16));
     foreach (const QSerialPortInfo &info, QSerialPortInfo::availablePorts()) {
@@ -75,6 +77,12 @@ qint64 JigInterfaceTty::write(const QByteArray &data)
     sPort->readAll();
     sPort->flush();
     return sPort->write(data);
+}
+
+void JigInterfaceTty::reset()
+{
+    rxBuffer.clear();
+    dataOk = false;
 }
 
 void JigInterfaceTty::readData()

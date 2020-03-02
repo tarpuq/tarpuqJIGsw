@@ -1,6 +1,13 @@
 {
     "asyncCommands": [
         {
+            "description": "",
+            "id": "openTester",
+            "ifCommand": "open",
+            "ifName": "tester1",
+            "name": "Abrir Tester"
+        },
+        {
             "CR": true,
             "LF": true,
             "description": "Envia el comando al probador para enceder la fuente del equipo",
@@ -62,42 +69,9 @@
             "ifCommand": "dialog",
             "ifName": "app",
             "name": "N/A"
-        },
-        {
-            "description": "",
-            "id": "",
-            "ifCommand": "dialog",
-            "ifName": "app",
-            "name": "N/A"
         }
     ],
     "interfaces": [
-        {
-            "alias": "tester1",
-            "baudRate": 115200,
-            "dataBits": 8,
-            "parity": 0,
-            "pid": "42",
-            "stopBits": 1,
-            "type": "tty",
-            "vid": "2341"
-        },
-        {
-            "alias": "ftdiProgram",
-            "path": "/home/ingenieria/Descargas/29082019/ftdiProgram",
-            "type": "plugin"
-        },
-        {
-            "alias": "pickit",
-            "bur": "BUR160872187",
-            "gndPin": "GND",
-            "mclrPin": "MCLR",
-            "pgcPin": "PGC",
-            "pgdPin": "PGD",
-            "target": "PIC32MX370F512H",
-            "type": "usb",
-            "vccPin": "VCC"
-        },
         {
             "alias": "tester2",
             "baudRate": 9600,
@@ -113,8 +87,35 @@
             "type": "app"
         },
         {
+            "alias": "ftdiProgram",
+            "path": "/home/ingenieria/Escritorio/tarpuqJIGsw/ftdiProgram",
+            "type": "plugin"
+        },
+        {
+            "alias": "pickit",
+            "bur": "BUR160872187",
+            "gndPin": "GND",
+            "ipePath": "C:/Program Files (x86)/Microchip/MPLABX/v5.25/mplab_platform/mplab_ipe/ipecmd.exe",
+            "mclrPin": "MCLR",
+            "pgcPin": "PGC",
+            "pgdPin": "PGD",
+            "target": "PIC32MX370F512H",
+            "type": "usb",
+            "vccPin": "VCC"
+        },
+        {
+            "alias": "tester1",
+            "baudRate": 115200,
+            "dataBits": 8,
+            "parity": 0,
+            "pid": "42",
+            "stopBits": 1,
+            "type": "tty",
+            "vid": "2341"
+        },
+        {
             "alias": "novatecnicaFrameConfigurator",
-            "path": "/home/ingenieria/Descargas/29082019/novatecnicaConfigurator",
+            "path": "D:\\OneDrive\\TQ\\Qt\\novatecnicaConfigurator\\win32\\release\\novatecnicaConfigurator.exe",
             "type": "plugin"
         },
         {
@@ -128,12 +129,12 @@
             "vid": "403"
         }
     ],
-    "ipeConfigs": {
-        "hexPath": "/home/ingenieria/Descargas/29082019/Aquaoff_Unificado_v190724_190830.hex",
-        "ipePath": "C:/Program Files (x86)/Microchip/MPLABX/v5.25/mplab_platform/mplab_ipe/ipecmd.exe"
-    },
+    "isPanelized": false,
+    "panelCols": 1,
+    "panelRows": 1,
     "productCode": "TQ1000113-01-01",
     "productName": "Deshumidificador AquaOff",
+    "hexPath": "/home/ingenieria/Descargas/29082019/Aquaoff_Unificado_v190724_190830.hex",
     "syncCommands": [
         {
             "description": "Abre la interfaz de comunicación con el probador",
@@ -147,6 +148,8 @@
             "timeout": 500
         },
         {
+            "CR": true,
+            "LF": true,
             "description": "Espera el mensaje OK del probador",
             "enabled": true,
             "id": "waitTester",
@@ -154,8 +157,10 @@
             "ifName": "tester1",
             "name": "Espera que el probador arranque",
             "onErr": "1",
-            "onOk": "OK",
-            "timeout": 3000
+            "onOk": "0",
+            "rxParameter": "OK",
+            "timeout": 3000,
+            "txCommand": "status"
         },
         {
             "CR": true,
@@ -240,8 +245,8 @@
             "ifName": "tester1",
             "mean": 5.16,
             "measFormula": "%f/3.34*5.15",
-            "messageOnErr": "El valor de voltaje de la fuente de 3.3V no está dentro del rango",
-            "messageOnOk": "El valor de voltaje de la fuente de 3.3V está dentro del rango",
+            "messageOnErr": "El valor de voltaje de la fuente de 5V no está dentro del rango",
+            "messageOnOk": "El valor de voltaje de la fuente de 5V está dentro del rango",
             "name": "Medir la tensión en la fuente de 5V",
             "onErr": "1",
             "onOk": "0",
@@ -339,7 +344,7 @@
             "CR": true,
             "CRC16": true,
             "LF": true,
-            "description": "Envia el comando al arduino para enceder la fuente del equipo",
+            "description": "Envia el comando al arduino para apagar la fuente del equipo",
             "enabled": true,
             "id": "powerOff",
             "ifCommand": "usartXfer",
@@ -353,7 +358,7 @@
         {
             "CR": true,
             "LF": true,
-            "delay": 1000,
+            "delay": 3000,
             "description": "Envia el comando al arduino para enceder la fuente del equipo",
             "enabled": true,
             "end": true,
@@ -699,7 +704,7 @@
             "ifAnswer": "%x",
             "ifCommand": "run",
             "ifName": "novatecnicaFrameConfigurator",
-            "ifParameter": "-m M40 -f varHP -s %serialNumber -d -t 72 --rh --rl",
+            "ifParameter": "-m L -f F4 -s %serialNumber -d -t 72 --rh --rl",
             "name": "Generar trama de configuración",
             "onErr": "1",
             "onOk": "0",

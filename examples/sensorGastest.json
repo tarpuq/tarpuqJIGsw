@@ -1,0 +1,372 @@
+{
+    "asyncCommands": [
+        {
+            "description": "",
+            "id": "openTester",
+            "ifCommand": "open",
+            "ifName": "tester1",
+            "name": "Abrir Tester"
+        },
+        {
+            "CR": true,
+            "LF": true,
+            "description": "Envia el comando al probador para enceder la fuente del equipo",
+            "id": "powerOn",
+            "ifCommand": "usartXfer",
+            "ifName": "tester1",
+            "name": "Encender",
+            "txCommand": "enableSource",
+            "txParameter": "1"
+        },
+        {
+            "CR": true,
+            "LF": true,
+            "description": "Apaga las fuentes en caso de que hayan quedado encendidas.",
+            "id": "powerOff",
+            "ifCommand": "usartXfer",
+            "ifName": "tester1",
+            "name": "Apagar",
+            "txCommand": "powerOff"
+        },
+        {
+            "description": "",
+            "id": "",
+            "ifCommand": "dialog",
+            "ifName": "app",
+            "name": "N/A"
+        },
+        {
+            "description": "",
+            "id": "",
+            "ifCommand": "dialog",
+            "ifName": "app",
+            "name": "N/A"
+        },
+        {
+            "description": "",
+            "id": "",
+            "ifCommand": "dialog",
+            "ifName": "app",
+            "name": "N/A"
+        },
+        {
+            "description": "",
+            "id": "",
+            "ifCommand": "dialog",
+            "ifName": "app",
+            "name": "N/A"
+        },
+        {
+            "description": "",
+            "id": "",
+            "ifCommand": "dialog",
+            "ifName": "app",
+            "name": "N/A"
+        },
+        {
+            "description": "",
+            "id": "",
+            "ifCommand": "dialog",
+            "ifName": "app",
+            "name": "N/A"
+        }
+    ],
+    "interfaces": [
+        {
+            "alias": "app",
+            "type": "app"
+        },
+        {
+            "alias": "tester2",
+            "baudRate": 9600,
+            "dataBits": 8,
+            "parity": 0,
+            "pid": "2303",
+            "stopBits": 1,
+            "type": "tty",
+            "vid": "67b"
+        },
+        {
+            "alias": "tester1",
+            "baudRate": 115200,
+            "dataBits": 8,
+            "parity": 0,
+            "pid": "42",
+            "stopBits": 1,
+            "type": "tty",
+            "vid": "2341"
+        },
+        {
+            "alias": "pickit",
+            "bur": "BUR160872187",
+            "gndPin": "GND",
+            "mclrPin": "MCLR",
+            "pgcPin": "PGC",
+            "pgdPin": "PGD",
+            "target": "PIC32MX370F512H",
+            "type": "usb",
+            "vccPin": "VCC"
+        },
+        {
+            "alias": "ftdiProgram",
+            "path": "/home/ingenieria/Escritorio/tarpuqJIGsw/ftdiProgram",
+            "type": "plugin"
+        },
+        {
+            "alias": "dut",
+            "baudRate": 9600,
+            "dataBits": 8,
+            "parity": 0,
+            "pid": "6015",
+            "stopBits": 1,
+            "type": "tty",
+            "vid": "403"
+        },
+        {
+            "alias": "novatecnicaFrameConfigurator",
+            "path": "/home/ingenieria/Escritorio/tarpuqJIGsw/novatecnicaConfigurator",
+            "type": "plugin"
+        }
+    ],
+    "ipeConfigs": {
+        "hexPath": "/home/tarpuq/ownCloud/Invitado/tarpuqJIG/26072019/QibliControl_v190724.X.production.unified.hex",
+        "ipePath": "C:/Program Files (x86)/Microchip/MPLABX/v5.25/mplab_platform/mplab_ipe/ipecmd.exe"
+    },
+    "productCode": "TQ1000106-02",
+    "productName": "06-Deshumidificador Qibli",
+    "syncCommands": [
+        {
+            "description": "Espera el mensaje OK del probador",
+            "enabled": true,
+            "id": "waitTester",
+            "ifCommand": "usartXfer",
+            "ifName": "tester1",
+            "name": "Espera que el probador arranque",
+            "onErr": "1",
+            "onOk": "0",
+            "rxParameter": "OK",
+            "timeout": 5000
+        },
+        {
+            "CR": true,
+            "LF": true,
+            "description": "Apaga las fuentes en caso de que hayan quedado encendidas.",
+            "enabled": true,
+            "id": "id",
+            "ifCommand": "usartXfer",
+            "ifName": "tester1",
+            "name": "Apagar las fuentes",
+            "onErr": "1",
+            "onOk": "0",
+            "timeout": 3000,
+            "txCommand": "powerOff"
+        },
+        {
+            "CR": true,
+            "LF": true,
+            "description": "",
+            "enabled": true,
+            "id": "id",
+            "ifCommand": "usartXfer",
+            "ifName": "tester1",
+            "name": "Liberar los pulsantes",
+            "onErr": "1",
+            "onOk": "0",
+            "timeout": 10000,
+            "txCommand": "doOff"
+        },
+        {
+            "CR": true,
+            "LF": true,
+            "description": "Medir +5V en TP6, Alimentación DC con una fuente externa de 7,5V a través de TP4",
+            "deviation": 0.3,
+            "enabled": true,
+            "end": true,
+            "id": "testSource5V",
+            "ifCommand": "usartXfer",
+            "ifName": "tester1",
+            "mean": 3.3,
+            "messageOnErr": "El valor de voltaje de la fuente de 5V no está dentro del rango",
+            "messageOnOk": "El valor de voltaje de la fuente de 5V está dentro del rango",
+            "name": "Medir la tensión en la fuente de 5V",
+            "onErr": "1",
+            "onOk": "0",
+            "rxParameter": "%measure",
+            "timeout": 3000,
+            "txCommand": "testSource",
+            "txParameter": "all"
+        },
+        {
+            "CR": true,
+            "LF": true,
+            "description": "Medir +7.5V en TP4, Alimentación AC a través de J4 y J5",
+            "deviation": 1,
+            "enabled": true,
+            "end": true,
+            "id": "testSource7.5V",
+            "ifCommand": "usartXfer",
+            "ifName": "tester1",
+            "mean": 7.5,
+            "messageOnErr": "El valor de voltaje de la fuente de 7.5V no está dentro del rango",
+            "messageOnOk": "El valor de voltaje de la fuente de 7.5V está dentro del rango",
+            "name": "Medir la tensión en la fuente de 7.5V",
+            "onErr": "1",
+            "onOk": "0",
+            "rxParameter": "%measure",
+            "timeout": 3000,
+            "txCommand": "testSource",
+            "txParameter": "3"
+        },
+        {
+            "CR": true,
+            "LF": true,
+            "OPT": true,
+            "description": "Señal a tierra a través de J1 para arrancar en modo Test",
+            "enabled": true,
+            "id": "pullDownJ1",
+            "ifCommand": "usartXfer",
+            "ifName": "tester1",
+            "name": "Arrancar en Modo Test",
+            "onErr": "1",
+            "onOk": "0",
+            "timeout": 3000,
+            "txCommand": "do",
+            "txParameter": "1"
+        },
+        {
+            "CR": true,
+            "LF": true,
+            "description": "Alimentar el equipo con AC, a través de J4 y J5",
+            "enabled": true,
+            "end": true,
+            "id": "powerOn",
+            "ifCommand": "usartXfer",
+            "ifName": "tester1",
+            "name": "Encender la fuente principal del sensor",
+            "onErr": "1",
+            "onOk": "0",
+            "timeout": 3000,
+            "txCommand": "enableSource",
+            "txParameter": "5"
+        },
+        {
+            "description": "Abre la interfaz de comunicación con el dispositivo, puede demorar mas de 30 segundos.",
+            "enabled": true,
+            "end": true,
+            "id": "openDut",
+            "ifCommand": "open",
+            "ifName": "dut",
+            "messageOnErr": "No es posible abrir la interfaz de comunicación con el Qibli",
+            "name": "Abrir la interfaz de comunicación con el dispositivo",
+            "timeout": 20000
+        },
+        {
+            "description": "Comando que indica que el dispositivo está listo para recibir comandos",
+            "enabled": true,
+            "end": true,
+            "id": "ready",
+            "ifCommand": "usartXfer",
+            "ifName": "dut",
+            "name": "Esperando señal READY del dispositivo",
+            "rxCommand": "@Ready",
+            "timeout": 30000
+        },
+        {
+            "CR": true,
+            "LF": true,
+            "description": "Enviar comando para probar Sensor",
+            "enabled": true,
+            "end": true,
+            "id": "testSensor",
+            "ifCommand": "usartXfer",
+            "ifName": "dut",
+            "name": "Test de sensor",
+            "onErr": "1",
+            "onOk": "0",
+            "timeout": 3000,
+            "txCommand": "s"
+        },
+        {
+            "CR": true,
+            "LF": true,
+            "description": "Enviar comando para encender Buzzer",
+            "enabled": true,
+            "id": "testBuzzerOn",
+            "ifCommand": "usartXfer",
+            "ifName": "dut",
+            "name": "Encender Buzzer",
+            "onErr": "1",
+            "onOk": "0",
+            "timeout": 3000,
+            "txCommand": "b"
+        },
+        {
+            "CR": true,
+            "LF": true,
+            "description": "Verificar que el buzzer suene, a través de un micrófono",
+            "enabled": true,
+            "id": "testBuzzer",
+            "ifCommand": "usartXfer",
+            "ifName": "dut",
+            "name": "Test de buzzer",
+            "onErr": "1",
+            "onOk": "0",
+            "timeout": 3000
+        },
+        {
+            "CR": true,
+            "LF": true,
+            "description": "Enviar comando para apagar Buzzer",
+            "enabled": true,
+            "id": "testBuzzerOff",
+            "ifCommand": "usartXfer",
+            "ifName": "dut",
+            "name": "Apagar buzzer",
+            "onErr": "1",
+            "onOk": "0",
+            "timeout": 3000,
+            "txCommand": "o"
+        },
+        {
+            "CR": true,
+            "LF": true,
+            "description": "Enviar comando para encender LED",
+            "enabled": true,
+            "id": "testLedOn",
+            "ifCommand": "usartXfer",
+            "ifName": "tester1",
+            "name": "Enceder LED",
+            "onErr": "1",
+            "onOk": "0",
+            "timeout": 3000,
+            "txCommand": "l"
+        },
+        {
+            "CR": true,
+            "LF": true,
+            "description": "Verificar que el voltaje en J3 sea 0, para esto es necesario poner una resistencia de 330 Ohm entre J2 y J3",
+            "enabled": true,
+            "id": "testLED",
+            "ifCommand": "usartXfer",
+            "ifName": "dut",
+            "name": "Test de LED",
+            "onErr": "1",
+            "onOk": "0",
+            "timeout": 3000
+        },
+        {
+            "CR": true,
+            "LF": true,
+            "description": "",
+            "enabled": true,
+            "id": "testLedOff",
+            "ifCommand": "usartXfer",
+            "ifName": "tester1",
+            "name": "Apagar LED",
+            "onErr": "1",
+            "onOk": "0",
+            "timeout": 3000,
+            "txCommand": "o"
+        }
+    ]
+}

@@ -1,6 +1,11 @@
 #include "commandeditdialog.h"
 #include "ui_commandeditdialog.h"
 
+#include "jiginterfaceapp.h"
+#include "jiginterfacepickit.h"
+#include "jiginterfaceplugin.h"
+#include "jiginterfacetty.h"
+
 #include <QDebug>
 
 CommandEditDialog::CommandEditDialog(QWidget *parent)
@@ -12,6 +17,11 @@ CommandEditDialog::CommandEditDialog(QWidget *parent)
     interfacesList = new QStringListModel(this);
 
     commandsList = new QStringListModel(this);
+
+    setAppCommands(JigInterfaceApp::getDefaultCommands());
+    setTtyCommandsList(JigInterfaceTty::getDefaultCommands());
+    setUsbCommandsList(JigInterfacePickit::getDefaultCommands());
+    setPluginCommandsList(JigInterfacePlugin::getDefaultCommands());
 
     ui->comboBox_tool->setModel(interfacesList);
 
@@ -106,7 +116,7 @@ void CommandEditDialog::on_buttonBox_accepted()
                                   ui->doubleSpinBox_deviation->value(),
                                   ui->doubleSpinBox_offset->value());
 
-    command->setState(JigSyncCommand::pending);
+    command->setStatus(JigSyncCommand::pending);
 }
 
 void CommandEditDialog::setInterfaces(QHash<QString, JigInterface *> *interfaces)
@@ -115,30 +125,28 @@ void CommandEditDialog::setInterfaces(QHash<QString, JigInterface *> *interfaces
     interfacesList->setStringList(this->interfaces->keys());
 }
 
-void CommandEditDialog::setCommands(QStringList commands)
+void CommandEditDialog::setAppCommands(QStringList commands)
 {
-    otherCommandsList = commands;
+    appCommandList = commands;
 }
 
 void CommandEditDialog::setTtyCommandsList(const QStringList &value)
 {
-    ttyCommandsList = value;
+    ttyCommandList = value;
 }
 
 void CommandEditDialog::setUsbCommandsList(const QStringList &value)
 {
-    usbCommandsList = value;
+    usbCommandList = value;
 }
 
 void CommandEditDialog::setPluginCommandsList(const QStringList &value)
 {
-    pluginCommandsList = value;
+    pluginCommandList = value;
 }
 
 void CommandEditDialog::on_doubleSpinBox_meanFixed_valueChanged(double arg1)
 {
-    qDebug() << arg1;
-
     double max = arg1 + ui->doubleSpinBox_deviation->value();
     double min = arg1 - ui->doubleSpinBox_deviation->value();
 
@@ -148,8 +156,6 @@ void CommandEditDialog::on_doubleSpinBox_meanFixed_valueChanged(double arg1)
 
 void CommandEditDialog::on_doubleSpinBox_deviation_valueChanged(double arg1)
 {
-    qDebug() << arg1;
-
     double max = ui->doubleSpinBox_meanFixed->value() + arg1;
     double min = ui->doubleSpinBox_meanFixed->value() - arg1;
 
@@ -165,21 +171,24 @@ void CommandEditDialog::on_checkBox_meanFormula_toggled(bool checked)
 
 void CommandEditDialog::on_comboBox_tool_currentIndexChanged(const QString &arg1)
 {
-    JigInterface::JigInterfaceType type;
+    if(arg1.isEmpty())
+        return;
+
+    JigInterface::JigInterfaceType type = JigInterface::none;
     type = interfaces->value(arg1)->getType();
 
     switch (type) {
     case JigInterface::tty:
-        this->commandsList->setStringList(ttyCommandsList);
+        this->commandsList->setStringList(ttyCommandList);
         break;
     case JigInterface::usb:
-        this->commandsList->setStringList(usbCommandsList);
+        this->commandsList->setStringList(usbCommandList);
         break;
     case JigInterface::plugin:
-        this->commandsList->setStringList(pluginCommandsList);
+        this->commandsList->setStringList(pluginCommandList);
         break;
     default:
-        this->commandsList->setStringList(otherCommandsList);
+        this->commandsList->setStringList(appCommandList);
         break;
     }
 }

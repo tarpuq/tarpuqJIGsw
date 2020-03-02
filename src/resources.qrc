@@ -9,5 +9,13 @@
         <file>icons/edit.svg</file>
         <file>icons/minus-1.svg</file>
         <file>icons/handshake.svg</file>
+        <file>icons/add-file.png</file>
+        <file>icons/carpeta.png</file>
+        <file>icons/gear.svg</file>
+        <file>icons/insertar.png</file>
+        <file>icons/lapiz.png</file>
+        <file>icons/tq.png</file>
+        <file>icons/basura.png</file>
+        <file>icons/pcb_config.svg</file>
     </qresource>
 </RCC>

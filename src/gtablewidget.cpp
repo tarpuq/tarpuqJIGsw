@@ -20,8 +20,7 @@ void GTableWidget::copy()
 
     // QModelIndex::operator < sorts first by row, then by column.
     // this is what we need
-    //    std::sort(indexes.begin(), indexes.end());
-    qSort(indexes);
+    std::sort(indexes.begin(), indexes.end());
 
     // You need a pair of indexes to find the row changes
     QModelIndex previous = indexes.first();
@@ -72,7 +71,7 @@ void GTableWidget::copy()
 
 void GTableWidget::paste()
 {
-    qDebug() << "paste";
+
 }
 
 void GTableWidget::keyPressEvent(QKeyEvent *event)

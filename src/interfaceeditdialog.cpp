@@ -3,6 +3,7 @@
 
 #include <QDebug>
 #include <QHash>
+#include <QPushButton>
 
 InterfaceEditDialog::InterfaceEditDialog(QWidget *parent)
     : QDialog(parent)
@@ -38,9 +39,11 @@ void InterfaceEditDialog::setInterfaces(QList<JigInterface *> interfaces)
     ui->listWidget->clear();
 
     foreach (JigInterface *interface, interfaces) {
-        typesIndex << interface->getType();
-        parametersIndex << interface->parameters;
-        ui->listWidget->addItem(interface->getAlias());
+        if(interface){
+            typesIndex << interface->getType();
+            parametersIndex << interface->parameters;
+            ui->listWidget->addItem(interface->getAlias());
+        }
     }
 }
 
@@ -67,7 +70,22 @@ void InterfaceEditDialog::on_listWidget_currentRowChanged(int currentRow)
 
             ui->tableWidget->insertRow(i);
             ui->tableWidget->setItem(i, 0, fieldItem);
-            ui->tableWidget->setItem(i, 1, valueItem);
+
+//            if(fieldKey.contains(QRegExp("[pP]ath"))){
+//                QWidget *pWidget = new QWidget(this);
+//                QPushButton *pButton = new QPushButton(pWidget);
+//                pButton->setText("Navegar");
+//                QHBoxLayout *pLayout = new QHBoxLayout(pWidget);
+//                pLayout->addWidget(pButton);
+//                pLayout->setAlignment(Qt::AlignCenter);
+//                pLayout->setContentsMargins(0,0,0,0);
+//                pWidget->setLayout(pLayout);
+//                ui->tableWidget->setCellWidget(i,1,pWidget);
+//            } else {
+                ui->tableWidget->setItem(i, 1, valueItem);
+//            }
+
+            ui->tableWidget->resizeColumnsToContents();
         }
         ui->tableWidget->blockSignals(false);
     }

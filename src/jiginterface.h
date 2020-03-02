@@ -41,6 +41,7 @@ public:
     virtual bool isDone(void);
     virtual int getResult();
     virtual QStringList getAnswers();
+    virtual void reset(void);
 
     virtual qint64 write(const QByteArray &data);
     bool dataReady();

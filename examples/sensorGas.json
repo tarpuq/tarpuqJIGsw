@@ -1,0 +1,271 @@
+{
+    "asyncCommands": [
+        {
+            "description": "",
+            "id": "openTester",
+            "ifCommand": "open",
+            "ifName": "tester1",
+            "name": "Abrir Tester"
+        },
+        {
+            "CR": true,
+            "LF": true,
+            "description": "Envia el comando al probador para enceder la fuente del equipo",
+            "id": "powerOn",
+            "ifCommand": "usartXfer",
+            "ifName": "tester1",
+            "name": "Encender",
+            "txCommand": "enableSource",
+            "txParameter": "1"
+        },
+        {
+            "CR": true,
+            "LF": true,
+            "description": "Apaga las fuentes en caso de que hayan quedado encendidas.",
+            "id": "powerOff",
+            "ifCommand": "usartXfer",
+            "ifName": "tester1",
+            "name": "Apagar",
+            "txCommand": "powerOff"
+        },
+        {
+            "description": "",
+            "id": "",
+            "ifCommand": "dialog",
+            "ifName": "app",
+            "name": "N/A"
+        },
+        {
+            "description": "",
+            "id": "",
+            "ifCommand": "dialog",
+            "ifName": "app",
+            "name": "N/A"
+        },
+        {
+            "description": "",
+            "id": "",
+            "ifCommand": "dialog",
+            "ifName": "app",
+            "name": "N/A"
+        },
+        {
+            "description": "",
+            "id": "",
+            "ifCommand": "dialog",
+            "ifName": "app",
+            "name": "N/A"
+        },
+        {
+            "description": "",
+            "id": "",
+            "ifCommand": "dialog",
+            "ifName": "app",
+            "name": "N/A"
+        },
+        {
+            "description": "",
+            "id": "",
+            "ifCommand": "dialog",
+            "ifName": "app",
+            "name": "N/A"
+        }
+    ],
+    "hexPath": "/home/tarpuq/ownCloud/Invitado/tarpuqJIG/26072019/QibliControl_v190724.X.production.unified.hex",
+    "interfaces": [
+        {
+            "alias": "app",
+            "type": "app"
+        },
+        {
+            "alias": "tester1",
+            "baudRate": 115200,
+            "dataBits": 8,
+            "parity": 0,
+            "pid": "42",
+            "stopBits": 1,
+            "type": "tty",
+            "vid": "2341"
+        }
+    ],
+    "isPanelized": true,
+    "panelCols": 2,
+    "panelRows": 2,
+    "productCode": "TQ1000116-01-01",
+    "productName": "Sensor LPG",
+    "syncCommands": [
+        {
+            "description": "Abre la interfaz de comunicación con el probador",
+            "enabled": true,
+            "end": true,
+            "id": "openTester",
+            "ifCommand": "open",
+            "ifName": "tester1",
+            "messageOnErr": "No es posible abrir la interfaz de comunicación con el probador",
+            "name": "Abre comunicación con probador",
+            "timeout": 500
+        },
+        {
+            "CR": true,
+            "LF": true,
+            "description": "Espera el mensaje OK del probador",
+            "enabled": true,
+            "end": true,
+            "id": "waitTester",
+            "ifCommand": "usartXfer",
+            "ifName": "tester1",
+            "name": "Espera que el probador arranque",
+            "onErr": "1",
+            "onOk": "0",
+            "rxParameter": "OK",
+            "timeout": 1000,
+            "txCommand": "status"
+        },
+        {
+            "CR": true,
+            "LF": true,
+            "description": "Apaga las fuentes en caso de que hayan quedado encendidas.",
+            "enabled": true,
+            "id": "id",
+            "ifCommand": "usartXfer",
+            "ifName": "tester1",
+            "name": "Apagar las fuentes",
+            "onErr": "1",
+            "onOk": "0",
+            "timeout": 1000,
+            "txCommand": "powerOff"
+        },
+        {
+            "CR": true,
+            "LF": true,
+            "description": "",
+            "enabled": true,
+            "id": "id",
+            "ifCommand": "usartXfer",
+            "ifName": "tester1",
+            "name": "Liberar los pulsantes",
+            "onErr": "1",
+            "onOk": "0",
+            "timeout": 1000,
+            "txCommand": "doX",
+            "txParameter": "off"
+        },
+        {
+            "CR": true,
+            "LF": true,
+            "description": "Alimentar el equipo con AC, a través de J4 y J5",
+            "enabled": true,
+            "end": true,
+            "id": "powerOn",
+            "ifCommand": "usartXfer",
+            "ifName": "tester1",
+            "name": "Encender la fuente principal del sensor",
+            "onErr": "1",
+            "onOk": "0",
+            "timeout": 1000,
+            "txCommand": "enableSource",
+            "txParameter": "1"
+        },
+        {
+            "CR": true,
+            "LF": true,
+            "description": "Medir +7.5V en TP4, Alimentación AC a través de J4 y J5",
+            "deviation": 1,
+            "enabled": true,
+            "id": "testSource7.5V",
+            "ifCommand": "usartXfer",
+            "ifName": "tester1",
+            "mean": 7.5,
+            "measFormula": "%f/3.3*7.5",
+            "messageOnErr": "El valor de voltaje de la fuente de 7.5V no está dentro del rango",
+            "messageOnOk": "El valor de voltaje de la fuente de 7.5V está dentro del rango",
+            "name": "Medir la tensión en la fuente de 7.5V",
+            "onErr": "1",
+            "onOk": "0",
+            "rxParameter": "%measure",
+            "timeout": 1000,
+            "txCommand": "testSource",
+            "txParameter": "tp4"
+        },
+        {
+            "CR": true,
+            "LF": true,
+            "description": "Medir +5V en TP6, Alimentación DC con una fuente externa de 7,5V a través de TP4",
+            "deviation": 1,
+            "enabled": true,
+            "id": "testSource5V",
+            "ifCommand": "usartXfer",
+            "ifName": "tester1",
+            "mean": 5,
+            "measFormula": "%f/3.3*5",
+            "messageOnErr": "El valor de voltaje de la fuente de 5V no está dentro del rango",
+            "messageOnOk": "El valor de voltaje de la fuente de 5V está dentro del rango",
+            "name": "Medir la tensión en la fuente de 5V",
+            "onErr": "1",
+            "onOk": "0",
+            "rxParameter": "%measure",
+            "timeout": 3000,
+            "txCommand": "testSource",
+            "txParameter": "tp6"
+        },
+        {
+            "description": "",
+            "enabled": false,
+            "id": "waitSensor",
+            "ifCommand": "deadtime",
+            "ifName": "app",
+            "name": "Espera 5 segundos a que el sensor se estabilice",
+            "onErr": "1",
+            "onOk": "0",
+            "timeout": 5000
+        },
+        {
+            "CR": true,
+            "LF": true,
+            "description": "Inyecta gas en los 4 sensores durante 500 ms",
+            "enabled": false,
+            "end": true,
+            "id": "injectGas",
+            "ifCommand": "usartXfer",
+            "ifName": "tester1",
+            "name": "Inyecta gas durante 500 ms",
+            "onErr": "1",
+            "onOk": "0",
+            "timeout": 3000,
+            "txCommand": "doX",
+            "txParameter": "pulse 500"
+        },
+        {
+            "CR": true,
+            "LF": true,
+            "description": "Enviar comando para probar Sensor",
+            "enabled": false,
+            "end": true,
+            "id": "testSensor",
+            "ifCommand": "usartXfer",
+            "ifName": "tester1",
+            "name": "Test de sensor",
+            "onErr": "1",
+            "onOk": "0",
+            "rxParameter": "true",
+            "timeout": 3000,
+            "txCommand": "diX",
+            "txParameter": "riseEdge"
+        },
+        {
+            "CR": true,
+            "LF": true,
+            "description": "Envia el comando para apagar la fuente del equipo",
+            "enabled": true,
+            "id": "powerOff",
+            "ifCommand": "usartXfer",
+            "ifName": "tester1",
+            "name": "Apagar la fuente principal del equipo",
+            "onErr": "1",
+            "onOk": "0",
+            "runOnJump": true,
+            "timeout": 1000,
+            "txCommand": "powerOff"
+        }
+    ]
+}

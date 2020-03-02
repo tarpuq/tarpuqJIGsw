@@ -3,7 +3,7 @@
 
 #include <QObject>
 
-#include <QTableWidgetItem>
+#include <QTreeWidgetItem>
 
 class JigSyncCommand : public QObject
 {
@@ -16,15 +16,14 @@ public:
     enum JigCommandState { pending, delay, running, jump, ok, fail };
     Q_ENUM(JigCommandState)
 
+    enum JigCommandColumn { colTest, colMin, colMeasure, colMax, colState };
+    Q_ENUM(JigCommandColumn)
+
     QString messageOnOk;
     QString messageOnError;
     QString messageNotice;
 
-    QTableWidgetItem *nameItem;
-    QTableWidgetItem *minItem;
-    QTableWidgetItem *measuredItem;
-    QTableWidgetItem *maxItem;
-    QTableWidgetItem *resultItem;
+    QTreeWidgetItem *treeItem;
 
     double deviation;
     double mean;
@@ -71,7 +70,7 @@ public:
     void setOnError(const QString &value);
 
     JigCommandState getState() const;
-    void setState(const JigCommandState &value);
+    void setStatus(const JigCommandState &value);
 
     bool getEnabled() const;
     void setEnabled(bool value);
@@ -112,6 +111,9 @@ public:
     QString getMeasFormula() const;
     void setMeasFormula(const QString &value);
 
+    void refreshState();
+    void setMeasureError(QString value);
+
 private:
     QString id;
     QString name;
@@ -146,12 +148,17 @@ public slots:
     bool isRxCommand(void);
     bool isTxArguments(void);
     bool isRxAnswers(void);
-    void setMeasureRange(double min, double max);
+    void setMeasureRange(double colMin, double colMax);
     void setMeasureParameters(double mean, double deviation, double offset);
-    bool setMeasure(double value);
+    int processMeasure(QTreeWidgetItem *item, QString value);
+    int setMeasureItem(QTreeWidgetItem *item, double value);
+    bool compareDate(QString date);
+    void setStatusItem(QTreeWidgetItem *item, JigCommandState status);
     void clearMeasure();
     bool isOnOk(void);
     bool isOnError(void);
+
+    int processAnswers(QStringList answers, QHash<QString, QByteArray> *wildcard, int index, QList<bool> *flags, QStringList *report);
 };
 
 #endif // JIGCOMMAND_H

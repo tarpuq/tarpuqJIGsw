@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SyncCommandListForm</class>
+ <widget class="QWidget" name="SyncCommandListForm">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>274</width>
+    <height>235</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Lista de Comandos</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QCheckBox" name="checkBox">
+     <property name="text">
+      <string>Activar/Desactivar todas las pruebas</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="GTreeWidget" name="treeWidget">
+     <property name="alternatingRowColors">
+      <bool>true</bool>
+     </property>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::ExtendedSelection</enum>
+     </property>
+     <column>
+      <property name="text">
+       <string notr="true">Prueba</string>
+      </property>
+      <property name="textAlignment">
+       <set>AlignCenter</set>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Mínimo</string>
+      </property>
+      <property name="textAlignment">
+       <set>AlignCenter</set>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Medido</string>
+      </property>
+      <property name="textAlignment">
+       <set>AlignCenter</set>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Máximo</string>
+      </property>
+      <property name="textAlignment">
+       <set>AlignCenter</set>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Estado</string>
+      </property>
+      <property name="textAlignment">
+       <set>AlignCenter</set>
+      </property>
+     </column>
+    </widget>
+   </item>
+  </layout>
+  <action name="actionEdit">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/prefix/icons/lapiz.png</normaloff>:/prefix/icons/lapiz.png</iconset>
+   </property>
+   <property name="text">
+    <string>Editar</string>
+   </property>
+   <property name="toolTip">
+    <string>Editar comando</string>
+   </property>
+  </action>
+  <action name="actionInsert">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/prefix/icons/insertar.png</normaloff>:/prefix/icons/insertar.png</iconset>
+   </property>
+   <property name="text">
+    <string>Insertar</string>
+   </property>
+   <property name="toolTip">
+    <string>Insertar comando</string>
+   </property>
+  </action>
+  <action name="actionRemove">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/prefix/icons/basura.png</normaloff>:/prefix/icons/basura.png</iconset>
+   </property>
+   <property name="text">
+    <string>Eliminar</string>
+   </property>
+   <property name="toolTip">
+    <string>Eliminar comando</string>
+   </property>
+  </action>
+  <action name="actionMove_Up">
+   <property name="text">
+    <string>Mover Arriba</string>
+   </property>
+  </action>
+  <action name="actionMove_Down">
+   <property name="text">
+    <string>Mover Abajo</string>
+   </property>
+  </action>
+  <action name="actionDuplicate">
+   <property name="text">
+    <string>Duplicar</string>
+   </property>
+  </action>
+  <action name="actionMove_Last">
+   <property name="text">
+    <string>Mover al final</string>
+   </property>
+  </action>
+  <action name="actionMove_First">
+   <property name="text">
+    <string>Mover al inicio</string>
+   </property>
+  </action>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>GTreeWidget</class>
+   <extends>QTreeWidget</extends>
+   <header>gtreewidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>QMdiSubWindow</class>
+   <extends>QWidget</extends>
+   <header>qmdisubwindow.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="resources.qrc"/>
+ </resources>
+ <connections/>
+</ui>

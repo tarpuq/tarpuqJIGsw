@@ -13,11 +13,12 @@ class JigInterfaceTty : public JigInterface
 public:
     JigInterfaceTty();
 
-    int open();
-    void close();
-    void config();
-    bool isOpen();
-    qint64 write(const QByteArray &data);
+    int open() override;
+    void close() override;
+    void config() override;
+    bool isOpen() override;
+    qint64 write(const QByteArray &data) override;
+    void reset() override;
 
     static QStringList getDefaultCommands() {return defaultTtyCommands;}
 

@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>999</width>
-    <height>884</height>
+    <width>1142</width>
+    <height>662</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -32,157 +32,29 @@
    <iconset resource="resources.qrc">
     <normaloff>:/prefix/icons/LogoNuevo_color_icono.svg</normaloff>:/prefix/icons/LogoNuevo_color_icono.svg</iconset>
   </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
   <widget class="QWidget" name="centralWidget">
    <property name="styleSheet">
     <string notr="true"/>
    </property>
    <layout class="QGridLayout" name="gridLayout_2">
-    <item row="2" column="0" colspan="3">
-     <widget class="Line" name="line_2">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="0" colspan="3">
-     <widget class="QLabel" name="labelOutput">
-      <property name="minimumSize">
-       <size>
-        <width>480</width>
-        <height>100</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>16777215</width>
-        <height>16777215</height>
-       </size>
-      </property>
+    <item row="1" column="0">
+     <widget class="QLabel" name="lbProfile">
       <property name="font">
        <font>
-        <family>Ubuntu</family>
         <pointsize>18</pointsize>
         <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
-      <property name="frameShape">
-       <enum>QFrame::Panel</enum>
-      </property>
       <property name="text">
-       <string/>
-      </property>
-      <property name="textFormat">
-       <enum>Qt::AutoText</enum>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
+       <string>No se ha cargado un perfil</string>
       </property>
      </widget>
     </item>
-    <item row="4" column="0" rowspan="3">
-     <widget class="QMdiArea" name="mdiArea"/>
-    </item>
-    <item row="4" column="1" colspan="2">
-     <widget class="QWidget" name="widget_2" native="true">
-      <property name="minimumSize">
-       <size>
-        <width>0</width>
-        <height>0</height>
-       </size>
-      </property>
-      <layout class="QGridLayout" name="gridLayout">
-       <property name="leftMargin">
-        <number>0</number>
-       </property>
-       <property name="topMargin">
-        <number>0</number>
-       </property>
-       <property name="rightMargin">
-        <number>0</number>
-       </property>
-       <property name="bottomMargin">
-        <number>0</number>
-       </property>
-       <item row="1" column="4">
-        <widget class="QPushButton" name="pbHex">
-         <property name="text">
-          <string>Editar</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="4">
-        <widget class="QPushButton" name="pbIpe">
-         <property name="text">
-          <string>Editar</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_6">
-         <property name="text">
-          <string>Ruta del HEX</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QLineEdit" name="lineEdit_hexPath">
-         <property name="enabled">
-          <bool>true</bool>
-         </property>
-         <property name="readOnly">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_3">
-         <property name="text">
-          <string>PICKit BUR</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QLineEdit" name="lineEdit_PICKitBUR">
-         <property name="enabled">
-          <bool>true</bool>
-         </property>
-         <property name="readOnly">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="4">
-        <widget class="QPushButton" name="pbPicKit">
-         <property name="text">
-          <string>Editar</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLineEdit" name="lineEdit_IPEPath">
-         <property name="enabled">
-          <bool>true</bool>
-         </property>
-         <property name="readOnly">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_5">
-         <property name="text">
-          <string>Ruta del IPE</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-    </item>
-    <item row="5" column="1" colspan="2">
-     <widget class="QTextBrowser" name="tbConsole"/>
-    </item>
-    <item row="6" column="1">
+    <item row="4" column="0">
      <widget class="QPushButton" name="pushButtonStart">
       <property name="minimumSize">
        <size>
@@ -192,7 +64,7 @@
       </property>
       <property name="maximumSize">
        <size>
-        <width>200</width>
+        <width>16777215</width>
         <height>16777215</height>
        </size>
       </property>
@@ -211,7 +83,7 @@
       </property>
      </widget>
     </item>
-    <item row="6" column="2">
+    <item row="4" column="1">
      <widget class="QPushButton" name="pushButtonStop">
       <property name="minimumSize">
        <size>
@@ -221,7 +93,7 @@
       </property>
       <property name="maximumSize">
        <size>
-        <width>200</width>
+        <width>16777215</width>
         <height>16777215</height>
        </size>
       </property>
@@ -237,80 +109,39 @@
       </property>
      </widget>
     </item>
-    <item row="7" column="0" colspan="3">
+    <item row="3" column="0" colspan="2">
+     <widget class="QMdiArea" name="mdiArea">
+      <property name="sizeAdjustPolicy">
+       <enum>QAbstractScrollArea::AdjustToContents</enum>
+      </property>
+      <widget class="SyncCommandListForm" name="syncCommandListUi">
+       <property name="windowTitle">
+        <string>Lista de Comandos</string>
+       </property>
+      </widget>
+      <widget class="AsyncCommandListForm" name="asyncCommandListUi">
+       <property name="windowTitle">
+        <string>Comandos Opcionales</string>
+       </property>
+      </widget>
+      <widget class="DutSummaryForm" name="dutSummaryUi">
+       <property name="windowTitle">
+        <string>Información DUT</string>
+       </property>
+      </widget>
+     </widget>
+    </item>
+    <item row="5" column="0" colspan="2">
      <widget class="QProgressBar" name="progressBar">
       <property name="value">
        <number>0</number>
       </property>
      </widget>
     </item>
-    <item row="1" column="0" colspan="3">
+    <item row="2" column="0" colspan="2">
      <layout class="QGridLayout" name="gridLayout_3">
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_7">
-        <property name="maximumSize">
-         <size>
-          <width>16777215</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>Producto:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2">
-       <widget class="QPushButton" name="pushButton">
-        <property name="text">
-         <string>Editar</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2">
-       <widget class="QPushButton" name="pushButton_2">
-        <property name="text">
-         <string>Editar</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="label_2">
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>Número de Serie:</string>
-        </property>
-       </widget>
-      </item>
       <item row="1" column="1">
        <widget class="QLineEdit" name="lineEditProjectName">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>16777215</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QLineEdit" name="lineEditTarpuqCode">
         <property name="minimumSize">
          <size>
           <width>0</width>
@@ -346,34 +177,44 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
-       <widget class="QLineEdit" name="lineEdit_numeroSerie">
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="lineEditTarpuqCode">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_7">
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
         <property name="text">
-         <string/>
-        </property>
-        <property name="maxLength">
-         <number>11</number>
-        </property>
-        <property name="cursorPosition">
-         <number>0</number>
+         <string>Producto:</string>
         </property>
        </widget>
       </item>
      </layout>
-    </item>
-    <item row="0" column="0" colspan="3">
-     <widget class="QLabel" name="lbProfile">
-      <property name="font">
-       <font>
-        <pointsize>18</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="text">
-       <string>No se ha cargado un perfil</string>
-      </property>
-     </widget>
     </item>
    </layout>
   </widget>
@@ -382,14 +223,15 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>999</width>
-     <height>25</height>
+     <width>1142</width>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuArchivo">
     <property name="title">
      <string>Archivo</string>
     </property>
+    <addaction name="actionNew"/>
     <addaction name="actionLoad"/>
     <addaction name="actionSave"/>
     <addaction name="actionSaveAs"/>
@@ -416,6 +258,9 @@
     </property>
     <addaction name="actionShowCommandList"/>
     <addaction name="actionShowCommandOptional"/>
+    <addaction name="actionShowDutInformation"/>
+    <addaction name="separator"/>
+    <addaction name="actionShowMessages"/>
    </widget>
    <addaction name="menuArchivo"/>
    <addaction name="menuHerramientas"/>
@@ -438,8 +283,15 @@
    <addaction name="actionLoad"/>
    <addaction name="actionSave"/>
    <addaction name="actionEditInterface"/>
+   <addaction name="actionEditDut"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
+  <widget class="QDockWidget" name="dockWidget">
+   <attribute name="dockWidgetArea">
+    <number>8</number>
+   </attribute>
+   <widget class="MessagesForm" name="dockWidgetContents"/>
+  </widget>
   <action name="actionSalir">
    <property name="text">
     <string>Salir</string>
@@ -448,7 +300,7 @@
   <action name="actionLoad">
    <property name="icon">
     <iconset resource="resources.qrc">
-     <normaloff>:/prefix/icons/folder.svg</normaloff>:/prefix/icons/folder.svg</iconset>
+     <normaloff>:/prefix/icons/carpeta.png</normaloff>:/prefix/icons/carpeta.png</iconset>
    </property>
    <property name="text">
     <string>Abrir</string>
@@ -522,8 +374,62 @@
     <string>Consola</string>
    </property>
   </action>
+  <action name="actionNew">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/prefix/icons/add-file.png</normaloff>:/prefix/icons/add-file.png</iconset>
+   </property>
+   <property name="text">
+    <string>Nuevo</string>
+   </property>
+  </action>
+  <action name="actionEditDut">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/prefix/icons/pcb_config.svg</normaloff>:/prefix/icons/pcb_config.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Configuración del DUT</string>
+   </property>
+  </action>
+  <action name="actionShowDutInformation">
+   <property name="text">
+    <string>Información de DUT</string>
+   </property>
+  </action>
+  <action name="actionShowMessages">
+   <property name="text">
+    <string>Barra de mensajes</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>MessagesForm</class>
+   <extends>QWidget</extends>
+   <header>messagesform.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>SyncCommandListForm</class>
+   <extends>QWidget</extends>
+   <header>synccommandlistform.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>AsyncCommandListForm</class>
+   <extends>QWidget</extends>
+   <header>asynccommandlistform.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>DutSummaryForm</class>
+   <extends>QWidget</extends>
+   <header>dutsummaryform.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="resources.qrc"/>
  </resources>

@@ -65,12 +65,8 @@ qint64 JigInterface::write(const QByteArray &data)
 
 bool JigInterface::dataReady()
 {
-    bool ans = false;
-    if (dataOk) {
-        dataOk = false;
-        ans = true;
-    }
-
+    bool ans = dataOk;
+    dataOk = false;
     return ans;
 }
 
@@ -82,6 +78,11 @@ int JigInterface::getResult()
 QStringList JigInterface::getAnswers()
 {
     return QStringList();
+}
+
+void JigInterface::reset()
+{
+
 }
 
 JigInterface::JigInterfaceType JigInterface::getType() const
