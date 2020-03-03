@@ -1310,6 +1310,10 @@ void MainWindow::processSyncCommand()
                                  "No fue posible registrar la información en la base de datos, por "
                                  "favor reinicie la aplicación y repita la prueba.");
         }
+
+        for(int i = 0; i < profile->getPanelAmount(); i++){
+            dutList->at(i)->clearSerialNumber();
+        }
     }
 
     stateMachineTimer.setInterval(stateMachineTimerInterval);
@@ -1418,7 +1422,7 @@ void MainWindow::on_pushButtonStart_clicked()
         return;
     }
     if (!ui->dutSummaryUi->isReady()) {
-        QMessageBox::warning(this, "Alerta", "Uno o más de los números de serie está incompleto");
+        QMessageBox::warning(this, "Alerta", "Uno o más de los números de serie está incompleto o repetido");
         return;
     }
     if (profile->syncCommands.size() == 0) {

@@ -63,10 +63,16 @@ bool DutSummaryForm::isReady()
 void DutSummaryForm::checkSerialNumbers()
 {
     ready = true;
+    QList<quint64> sNumbers;
     foreach(DutInfoForm *w, _dutList){
-        if(w->getSerialNumber() == 0){
+        quint64 sNumber = w->getSerialNumber();
+        if(sNumber == 0){
+            ready = false;
+        } else if(sNumbers.contains(sNumber)){
             ready = false;
         }
+
+        sNumbers << w->getSerialNumber();
     }
     emit dutChanged(ready);
 }
