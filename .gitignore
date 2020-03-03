@@ -84,7 +84,7 @@ compile_commands.json
 
 deb_package
 linux
-win32
+windows
 tarpuqJIGsw.deb
 
 # End of https://www.gitignore.io/api/qt,qtcreator
