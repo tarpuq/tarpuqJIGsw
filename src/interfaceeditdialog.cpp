@@ -31,14 +31,14 @@ InterfaceEditDialog::~InterfaceEditDialog()
     delete ui;
 }
 
-void InterfaceEditDialog::setInterfaces(QList<JigInterface *> interfaces)
+void InterfaceEditDialog::setInterfaces(QList<JigAbstractInterface *> interfaces)
 {
     this->interfaces = interfaces;
     typesIndex.clear();
     parametersIndex.clear();
     ui->listWidget->clear();
 
-    foreach (JigInterface *interface, interfaces) {
+    foreach (JigAbstractInterface *interface, interfaces) {
         if(interface){
             typesIndex << interface->getType();
             parametersIndex << interface->parameters;
@@ -93,7 +93,7 @@ void InterfaceEditDialog::on_listWidget_currentRowChanged(int currentRow)
 
 void InterfaceEditDialog::on_comboBox_activated(int index)
 {
-    typesIndex[currentInterfaceIndex] = static_cast<JigInterface::JigInterfaceType>(index + 1);
+    typesIndex[currentInterfaceIndex] = static_cast<JigAbstractInterface::JigInterfaceType>(index + 1);
 }
 
 void InterfaceEditDialog::on_buttonBox_accepted()

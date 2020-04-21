@@ -25,6 +25,11 @@
     <height>0</height>
    </size>
   </property>
+  <property name="font">
+   <font>
+    <pointsize>8</pointsize>
+   </font>
+  </property>
   <property name="windowTitle">
    <string>Tarpuq JIGsw</string>
   </property>
@@ -58,14 +63,8 @@
      <widget class="QPushButton" name="pushButtonStart">
       <property name="minimumSize">
        <size>
-        <width>200</width>
-        <height>75</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>16777215</width>
-        <height>16777215</height>
+        <width>0</width>
+        <height>50</height>
        </size>
       </property>
       <property name="font">
@@ -87,14 +86,8 @@
      <widget class="QPushButton" name="pushButtonStop">
       <property name="minimumSize">
        <size>
-        <width>200</width>
-        <height>75</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>16777215</width>
-        <height>16777215</height>
+        <width>0</width>
+        <height>50</height>
        </size>
       </property>
       <property name="font">
@@ -124,9 +117,14 @@
         <string>Comandos Opcionales</string>
        </property>
       </widget>
-      <widget class="DutSummaryForm" name="dutSummaryUi">
+      <widget class="DutPanelForm" name="dutPanelUi">
        <property name="windowTitle">
         <string>Información DUT</string>
+       </property>
+      </widget>
+      <widget class="DebugControlUi" name="debugCtrlUi">
+       <property name="windowTitle">
+        <string>Subwindow</string>
        </property>
       </widget>
      </widget>
@@ -259,6 +257,7 @@
     <addaction name="actionShowCommandList"/>
     <addaction name="actionShowCommandOptional"/>
     <addaction name="actionShowDutInformation"/>
+    <addaction name="actionDebugControl"/>
     <addaction name="separator"/>
     <addaction name="actionShowMessages"/>
    </widget>
@@ -270,8 +269,8 @@
   <widget class="QToolBar" name="mainToolBar">
    <property name="iconSize">
     <size>
-     <width>40</width>
-     <height>40</height>
+     <width>24</width>
+     <height>24</height>
     </size>
    </property>
    <attribute name="toolBarArea">
@@ -290,7 +289,7 @@
    <attribute name="dockWidgetArea">
     <number>8</number>
    </attribute>
-   <widget class="MessagesForm" name="dockWidgetContents"/>
+   <widget class="MessagesForm" name="messagesBox"/>
   </widget>
   <action name="actionSalir">
    <property name="text">
@@ -402,6 +401,24 @@
     <string>Barra de mensajes</string>
    </property>
   </action>
+  <action name="actionDebugControl">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Herramientas de Debug</string>
+   </property>
+  </action>
+  <action name="actionStart">
+   <property name="text">
+    <string>Iniciar</string>
+   </property>
+  </action>
+  <action name="actionStop">
+   <property name="text">
+    <string>Parar</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -424,9 +441,15 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>DutSummaryForm</class>
+   <class>DutPanelForm</class>
    <extends>QWidget</extends>
-   <header>dutsummaryform.h</header>
+   <header>dutpanelform.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>DebugControlUi</class>
+   <extends>QWidget</extends>
+   <header>debugcontrolui.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

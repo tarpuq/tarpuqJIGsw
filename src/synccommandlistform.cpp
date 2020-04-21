@@ -3,6 +3,7 @@
 
 #include <QMenu>
 #include <QDebug>
+#include <QMdiSubWindow>
 
 SyncCommandListForm::SyncCommandListForm(QWidget *parent) :
     QWidget(parent),
@@ -22,18 +23,22 @@ void SyncCommandListForm::insertCommand(JigSyncCommand *cmd)
 {
     ui->treeWidget->addTopLevelItem(cmd->treeItem);
 
-    ui->treeWidget->resizeColumnToContents(0);
-    ui->treeWidget->setColumnWidth(1,100);
-    ui->treeWidget->setColumnWidth(2,100);
-    ui->treeWidget->setColumnWidth(3,100);
-    ui->treeWidget->setColumnWidth(4,100);
+    ui->treeWidget->resizeColumnToContents(JigSyncCommand::colTest);
+    ui->treeWidget->setColumnWidth(JigSyncCommand::colMax,100);
+    ui->treeWidget->setColumnWidth(JigSyncCommand::colMeasure,100);
+    ui->treeWidget->setColumnWidth(JigSyncCommand::colMin,100);
+    ui->treeWidget->setColumnWidth(JigSyncCommand::colState,100);
 
     ui->treeWidget->setMaximumWidth(
-        ui->treeWidget->columnWidth(0) + ui->treeWidget->columnWidth(1)
-        + ui->treeWidget->columnWidth(2) + ui->treeWidget->columnWidth(3)
-        + ui->treeWidget->columnWidth(4));
+        ui->treeWidget->columnWidth(JigSyncCommand::colTest) +
+        ui->treeWidget->columnWidth(JigSyncCommand::colMax) +
+        ui->treeWidget->columnWidth(JigSyncCommand::colMeasure) +
+        ui->treeWidget->columnWidth(JigSyncCommand::colMin) +
+        ui->treeWidget->columnWidth(JigSyncCommand::colState)
+    );
 
-    static_cast<QMdiSubWindow *>(this->parent())->resize(ui->treeWidget->maximumWidth() + 50, 500);;
+    QMdiSubWindow *subwindow = static_cast<QMdiSubWindow *>(this->parent());
+    subwindow->resize(ui->treeWidget->maximumWidth() + 50, 400);
 }
 
 void SyncCommandListForm::on_treeWidget_customContextMenuRequested(const QPoint &pos)
@@ -183,7 +188,7 @@ void SyncCommandListForm::on_checkBox_stateChanged(int arg1)
 
 void SyncCommandListForm::on_treeWidget_itemChanged(QTreeWidgetItem *item, int column)
 {
-    if(column == 0){
+    if(column == JigSyncCommand::colTest){
         foreach(JigSyncCommand *cmd, *commandList){
             if(item == cmd->treeItem){
                 if (item->checkState(column) == Qt::Checked) {

@@ -2,12 +2,46 @@
 #include "ui_messagesform.h"
 
 #include <QScrollBar>
+#include <QDebug>
+
+MessagesForm *debugOut;
+
+void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+{
+    QByteArray localMsg = msg.toLocal8Bit();
+
+    switch (type) {
+    case QtDebugMsg:
+        fprintf(stderr, "Debug: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
+        break;
+    case QtInfoMsg:
+        fprintf(stderr, "Info: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
+        break;
+    case QtWarningMsg:
+        fprintf(stderr, "Warning: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
+        break;
+    case QtCriticalMsg:
+        fprintf(stderr, "Critical: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
+        break;
+    case QtFatalMsg:
+        fprintf(stderr, "Fatal: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
+        abort();
+    }
+
+    if(debugOut){
+        debugOut->setDebugMessage(localMsg + "<br>");
+    }
+}
 
 MessagesForm::MessagesForm(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MessagesForm)
 {
     ui->setupUi(this);
+
+    debugOut = this;
+
+    qInstallMessageHandler(myMessageOutput); // Install the handler
 }
 
 MessagesForm::~MessagesForm()
@@ -43,4 +77,9 @@ void MessagesForm::clearOutputMessage()
 void MessagesForm::clearDebugMessage()
 {
     ui->textBrowser_debug->clear();
+}
+
+void MessagesForm::on_toolButton_triggered(QAction *arg1)
+{
+    qDebug() << arg1;
 }

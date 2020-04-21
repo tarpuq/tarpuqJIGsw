@@ -1,10 +1,11 @@
 {
     "asyncCommands": [
         {
+            "description": "",
             "id": "openTester",
-            "name": "Abrir Tester",
             "ifCommand": "open",
-            "ifName": "tester1"
+            "ifName": "tester1",
+            "name": "Abrir Tester"
         },
         {
             "CR": true,
@@ -15,7 +16,7 @@
             "ifName": "tester1",
             "name": "Encender",
             "txCommand": "enableSource",
-            "txParameter": "1"
+            "txParameter": "5"
         },
         {
             "CR": true,
@@ -28,50 +29,61 @@
             "txCommand": "powerOff"
         },
         {
-            "name": "N/A",
+            "description": "",
+            "id": "",
             "ifCommand": "dialog",
-            "ifName": "app"
+            "ifName": "app",
+            "name": "N/A"
         },
         {
-            "name": "N/A",
+            "description": "",
+            "id": "",
             "ifCommand": "dialog",
-            "ifName": "app"
+            "ifName": "app",
+            "name": "N/A"
         },
         {
-            "name": "N/A",
+            "description": "",
+            "id": "",
             "ifCommand": "dialog",
-            "ifName": "app"
+            "ifName": "app",
+            "name": "N/A"
         },
         {
-            "name": "N/A",
+            "description": "",
+            "id": "",
             "ifCommand": "dialog",
-            "ifName": "app"
+            "ifName": "app",
+            "name": "N/A"
         },
         {
-            "name": "N/A",
+            "description": "",
+            "id": "",
             "ifCommand": "dialog",
-            "ifName": "app"
+            "ifName": "app",
+            "name": "N/A"
         },
         {
-            "name": "N/A",
+            "description": "",
+            "id": "",
             "ifCommand": "dialog",
-            "ifName": "app"
+            "ifName": "app",
+            "name": "N/A"
         }
     ],
+    "hexPath": "D:/ownCloud/Invitado/tarpuqJIG/26072019/QibliControl_v190724.X.production.unified.hex",
     "interfaces": [
         {
-            "alias": "tester1",
-            "baudRate": 115200,
-            "dataBits": 8,
-            "parity": 0,
-            "pid": "42",
-            "stopBits": 1,
-            "type": "tty",
-            "vid": "2341"
-        },
-        {
-            "alias": "app",
-            "type": "app"
+            "alias": "pickit",
+            "bur": "BUR160872187",
+            "gndPin": "GND",
+            "ipePath": "C:/Program Files (x86)/Microchip/MPLABX/v5.25/mplab_platform/mplab_ipe/ipecmd.exe",
+            "mclrPin": "MCLR",
+            "pgcPin": "PGC",
+            "pgdPin": "PGD",
+            "target": "PIC32MX370F512H",
+            "type": "usb",
+            "vccPin": "VCC"
         },
         {
             "alias": "novatecnicaFrameConfigurator",
@@ -79,15 +91,9 @@
             "type": "plugin"
         },
         {
-            "alias": "pickit",
-            "bur": "BUR160872187",
-            "gndPin": "GND",
-            "mclrPin": "MCLR",
-            "pgcPin": "PGC",
-            "pgdPin": "PGD",
-            "target": "PIC32MX370F512H",
-            "type": "usb",
-            "vccPin": "VCC"
+            "alias": "ftdiProgram",
+            "path": "/home/tarpuq/Escritorio/temp/ubuntulib/ftdiProgram",
+            "type": "plugin"
         },
         {
             "alias": "dut",
@@ -100,9 +106,14 @@
             "vid": "403"
         },
         {
-            "alias": "ftdiProgram",
-            "path": "/home/tarpuq/Escritorio/temp/ubuntulib/ftdiProgram",
-            "type": "plugin"
+            "alias": "tester1",
+            "baudRate": 115200,
+            "dataBits": 8,
+            "parity": 0,
+            "pid": "42",
+            "stopBits": 1,
+            "type": "tty",
+            "vid": "2341"
         },
         {
             "alias": "tester2",
@@ -113,18 +124,23 @@
             "stopBits": 1,
             "type": "tty",
             "vid": "67b"
+        },
+        {
+            "alias": "app",
+            "type": "app"
         }
     ],
-    "ipeConfigs": {
-        "hexPath": "D:/ownCloud/Invitado/tarpuqJIG/26072019/QibliControl_v190724.X.production.unified.hex",
-        "ipePath": "C:/Program Files (x86)/Microchip/MPLABX/v5.25/mplab_platform/mplab_ipe/ipecmd.exe"
-    },
+    "isPanelized": false,
+    "panelCols": 1,
+    "panelRows": 1,
+    "picBottom": "",
+    "picTop": "",
     "productCode": "TQ1000106-02",
     "productName": "06-Deshumidificador Qibli",
     "syncCommands": [
         {
             "description": "Abre la interfaz de comunicación con el probador 1",
-            "enabled": false,
+            "enabled": true,
             "end": true,
             "id": "openTester1",
             "ifCommand": "open",
@@ -134,21 +150,26 @@
             "timeout": 500
         },
         {
-            "description": "",
-            "enabled": false,
-            "id": "id",
+            "CR": true,
+            "LF": true,
+            "description": "Espera el mensaje OK del probador",
+            "enabled": true,
+            "end": true,
+            "id": "waitTester",
             "ifCommand": "usartXfer",
             "ifName": "tester1",
-            "name": "Espera que el probador 1 arranque",
+            "name": "Espera que el probador arranque",
             "onErr": "1",
-            "onOk": "OK",
-            "timeout": 3000
+            "onOk": "0",
+            "rxParameter": "OK",
+            "timeout": 3000,
+            "txCommand": "status"
         },
         {
             "CR": true,
             "LF": true,
             "description": "Apaga las fuentes en caso de que hayan quedado encendidas.",
-            "enabled": false,
+            "enabled": true,
             "id": "id",
             "ifCommand": "usartXfer",
             "ifName": "tester1",
@@ -162,7 +183,7 @@
             "CR": true,
             "LF": true,
             "description": "",
-            "enabled": false,
+            "enabled": true,
             "id": "id",
             "ifCommand": "usartXfer",
             "ifName": "tester1",
@@ -175,7 +196,7 @@
         {
             "CR": true,
             "LF": true,
-            "description": "Envia el comando para chequeo de la resistencia de la bobina",
+            "description": "Envía el comando para chequeo de la resistencia de la bobina",
             "deviation": 2,
             "enabled": false,
             "id": "testLoop",
@@ -194,9 +215,9 @@
         {
             "CR": true,
             "LF": true,
-            "description": "Envia el comando para chequeo del valor de tensión de la fuente de 3.3V",
+            "description": "Env�a el comando para chequeo del valor de tensión de la fuente de 3.3V",
             "deviation": 0.3,
-            "enabled": false,
+            "enabled": true,
             "end": true,
             "id": "testSource3.3V",
             "ifCommand": "usartXfer",
@@ -208,16 +229,16 @@
             "onErr": "1",
             "onOk": "0",
             "rxParameter": "%measure",
-            "timeout": 10000,
+            "timeout": 3000,
             "txCommand": "testSource",
             "txParameter": "1"
         },
         {
             "CR": true,
             "LF": true,
-            "description": "Envia el comando para chequeo del valor de tensión de la fuente de 12V",
+            "description": "Envía el comando para chequeo del valor de tensión de la fuente de 12V",
             "deviation": 1,
-            "enabled": false,
+            "enabled": true,
             "end": true,
             "id": "testSource12V",
             "ifCommand": "usartXfer",
@@ -230,16 +251,16 @@
             "onErr": "1",
             "onOk": "0",
             "rxParameter": "%measure",
-            "timeout": 10000,
+            "timeout": 3000,
             "txCommand": "testSource",
             "txParameter": "3"
         },
         {
             "CR": true,
             "LF": true,
-            "description": "Envia el comando para chequeo del valor de tensión de la fuente de 15V",
+            "description": "Envía el comando para chequeo del valor de tensión de la fuente de 15V",
             "deviation": 1,
-            "enabled": false,
+            "enabled": true,
             "end": true,
             "id": "testSource15V",
             "ifCommand": "usartXfer",
@@ -252,7 +273,7 @@
             "onErr": "1",
             "onOk": "0",
             "rxParameter": "%measure",
-            "timeout": 10000,
+            "timeout": 3000,
             "txCommand": "testSource",
             "txParameter": "2"
         },
@@ -261,7 +282,7 @@
             "LF": true,
             "delay": 1000,
             "description": "Envia el comando al probador para enceder la fuente del equipo",
-            "enabled": false,
+            "enabled": true,
             "end": true,
             "id": "powerOn",
             "ifCommand": "usartXfer",
@@ -271,16 +292,17 @@
             "onOk": "0",
             "timeout": 3000,
             "txCommand": "enableSource",
-            "txParameter": "1"
+            "txParameter": "5"
         },
         {
+            "delay": 1000,
             "description": "Configura el FTDI",
             "enabled": false,
             "end": true,
             "id": "ftprog",
             "ifCommand": "run",
             "ifName": "ftdiProgram",
-            "ifParameter": "-P \"Novatecnica Qibli\" -S %serialNumber",
+            "ifParameter": "-P \"NovaTecnica Qibli\" -S %serialNumber",
             "name": "Configuración del FTDI",
             "onErr": "1",
             "onOk": "0",
@@ -294,19 +316,19 @@
             "ifCommand": "program",
             "ifName": "pickit",
             "ifParameter": "-TS%bur -P%target -F%H -M -OL -OB",
-            "name": "Programar el firmware del Qibli",
+            "name": "Programar el firmware del dispositivo",
             "timeout": 90000
         },
         {
             "CR": true,
             "CRC16": true,
             "LF": true,
-            "description": "Envia el comando al arduino para enceder la fuente del equipo",
-            "enabled": false,
+            "description": "Envia el comando al arduino para apagar la fuente del equipo",
+            "enabled": true,
             "id": "powerOff",
             "ifCommand": "usartXfer",
             "ifName": "tester1",
-            "name": "Apagar la fuente principal del Qibli",
+            "name": "Apagar la fuente principal del dispositivo",
             "onErr": "1",
             "onOk": "0",
             "timeout": 3000,
@@ -317,44 +339,45 @@
             "LF": true,
             "delay": 1000,
             "description": "Envia el comando al arduino para enceder la fuente del equipo",
-            "enabled": false,
+            "enabled": true,
             "end": true,
             "id": "powerOn",
             "ifCommand": "usartXfer",
             "ifName": "tester1",
-            "name": "Encender la fuente principal del Qibli",
+            "name": "Encender la fuente principal del dispositivo",
             "onErr": "1",
             "onOk": "0",
             "timeout": 3000,
-            "txCommand": "powerOn"
+            "txCommand": "enableSource",
+            "txParameter": "5"
         },
         {
-            "description": "Abre la interfaz de comunicación con el Qibli, puede demorar mas de 30 segundos.",
-            "enabled": false,
+            "description": "Abre la interfaz de comunicación con el dispositivo, puede demorar mas de 30 segundos.",
+            "enabled": true,
             "end": true,
             "id": "openDut",
             "ifCommand": "open",
             "ifName": "dut",
             "messageOnErr": "No es posible abrir la interfaz de comunicación con el Qibli",
-            "name": "Abrir la interfaz de comunicación con el Qibli",
+            "name": "Abrir la interfaz de comunicación con el dispositivo",
             "timeout": 20000
         },
         {
-            "description": "Comando que indica que el Qibli está listo para recibir comandos",
-            "enabled": false,
+            "description": "Comando que indica que el dispositivo está listo para recibir comandos",
+            "enabled": true,
             "end": true,
             "id": "ready",
             "ifCommand": "usartXfer",
             "ifName": "dut",
-            "name": "Esperando señal READY del qibli",
+            "name": "Esperando señal READY del dispositivo",
             "rxCommand": "@Ready",
             "timeout": 30000
         },
         {
             "CR": true,
             "LF": true,
-            "description": "Comando para ingresar al modo de pruebas del Qibli",
-            "enabled": false,
+            "description": "Comando para ingresar al modo de pruebas del dispositivo.",
+            "enabled": true,
             "end": true,
             "id": "testInit",
             "ifCommand": "usartXfer",
@@ -368,8 +391,8 @@
         {
             "CR": true,
             "LF": true,
-            "description": "Comando para pobrar el reloj de tiempo real",
-            "enabled": false,
+            "description": "Comando para probar el reloj de tiempo real",
+            "enabled": true,
             "id": "testRTC",
             "ifCommand": "usartXfer",
             "ifName": "dut",
@@ -382,8 +405,8 @@
         {
             "CR": true,
             "LF": true,
-            "description": "Iguala la hora del Qibli",
-            "enabled": false,
+            "description": "Iguala la hora del dispositivo",
+            "enabled": true,
             "id": "igualaRTC",
             "ifCommand": "usartXfer",
             "ifName": "dut",
@@ -397,8 +420,8 @@
         {
             "CR": true,
             "LF": true,
-            "description": "Prueba que las entradas estén en OFF",
-            "enabled": false,
+            "description": "Prueba que las entradas están en OFF",
+            "enabled": true,
             "id": "testInputsOff",
             "ifCommand": "usartXfer",
             "ifName": "dut",
@@ -412,7 +435,7 @@
             "CR": true,
             "LF": true,
             "description": "Envia comando para activar el pulsante 1",
-            "enabled": false,
+            "enabled": true,
             "id": "PB1On",
             "ifCommand": "usartXfer",
             "ifName": "tester1",
@@ -427,7 +450,7 @@
             "CR": true,
             "LF": true,
             "description": "Prueba si la entrada 1 está presionada",
-            "enabled": false,
+            "enabled": true,
             "id": "testIN1ON",
             "ifCommand": "usartXfer",
             "ifName": "dut",
@@ -441,7 +464,7 @@
             "CR": true,
             "LF": true,
             "description": "",
-            "enabled": false,
+            "enabled": true,
             "id": "id",
             "ifCommand": "usartXfer",
             "ifName": "tester1",
@@ -456,8 +479,8 @@
             "CR": true,
             "LF": true,
             "description": "Prueba si la entrada 2 está presionada",
-            "enabled": false,
-            "id": "id",
+            "enabled": true,
+            "id": "testIN2ON",
             "ifCommand": "usartXfer",
             "ifName": "dut",
             "name": "Enviar @IN2ON",
@@ -470,7 +493,7 @@
             "CR": true,
             "LF": true,
             "description": "Activa la entrada 3 del dispositivo",
-            "enabled": false,
+            "enabled": true,
             "id": "id",
             "ifCommand": "usartXfer",
             "ifName": "tester1",
@@ -485,8 +508,8 @@
             "CR": true,
             "LF": true,
             "description": "Prueba si la entrada 3 está presionada",
-            "enabled": false,
-            "id": "id",
+            "enabled": true,
+            "id": "testIN3ON",
             "ifCommand": "usartXfer",
             "ifName": "dut",
             "name": "Enviar @IN3ON",
@@ -499,7 +522,7 @@
             "CR": true,
             "LF": true,
             "description": "Comando para probar el circuito de la bobina",
-            "enabled": false,
+            "enabled": true,
             "id": "testBobina",
             "ifCommand": "usartXfer",
             "ifName": "dut",
@@ -512,8 +535,8 @@
         {
             "CR": true,
             "LF": true,
-            "description": "Comando para pobrar la Flash",
-            "enabled": false,
+            "description": "Comando para probar la Flash",
+            "enabled": true,
             "id": "testFlash",
             "ifCommand": "usartXfer",
             "ifName": "dut",
@@ -526,8 +549,8 @@
         {
             "CR": true,
             "LF": true,
-            "description": "Comando para pobrar la Eeprom",
-            "enabled": false,
+            "description": "Comando para probar la Eeprom",
+            "enabled": true,
             "id": "testEeprom",
             "ifCommand": "usartXfer",
             "ifName": "dut",
@@ -541,8 +564,8 @@
             "CR": true,
             "LF": true,
             "description": "Comprueba la comunicación en el UART3",
-            "enabled": false,
-            "id": "id",
+            "enabled": true,
+            "id": "testUart",
             "ifCommand": "usartXfer",
             "ifName": "dut",
             "name": "Enviar @UART3",
@@ -554,13 +577,13 @@
         {
             "CR": true,
             "LF": true,
-            "description": "Comando para pobrar el LCD",
+            "description": "Comando para probar el LCD",
             "enabled": false,
             "end": true,
             "id": "testLCD",
             "ifCommand": "usartXfer",
             "ifName": "dut",
-            "messageNotice": "Por favor, observe minuciosamente la secuencia de imagenes del LCD",
+            "messageNotice": "Por favor, observe minuciosamente la secuencia de imágenes del LCD",
             "name": "Enviar @LCD",
             "onErr": "1",
             "onOk": "0",
@@ -568,12 +591,12 @@
             "txCommand": "@LCD"
         },
         {
-            "description": "Indicar si la secuencia de imagenes del LCD fue correcta.",
+            "description": "Indicar si la secuencia de imágenes del LCD fue correcta.",
             "enabled": false,
             "id": "verificaLCD",
             "ifCommand": "dialog",
             "ifName": "app",
-            "ifParameter": "Indique si la secuencia de imagenes del LCD fue correcta.",
+            "ifParameter": "Indique si la secuencia de imágenes del LCD fue correcta.",
             "name": "Verificar prueba del LCD",
             "onErr": "1",
             "onOk": "0",
@@ -703,11 +726,11 @@
         },
         {
             "description": "",
-            "enabled": false,
+            "enabled": true,
             "id": "closeDut",
             "ifCommand": "close",
             "ifName": "dut",
-            "name": "Cerrar la interfaz de comunicación con el Qiblí",
+            "name": "Cerrar la interfaz de comunicación con el dispositivo",
             "runOnJump": true,
             "timeout": 3000
         },
@@ -715,7 +738,7 @@
             "CR": true,
             "LF": true,
             "description": "Envia el comando al arduino para apagar la fuente del equipo",
-            "enabled": false,
+            "enabled": true,
             "id": "powerOff",
             "ifCommand": "usartXfer",
             "ifName": "tester1",
@@ -727,7 +750,7 @@
         },
         {
             "description": "",
-            "enabled": false,
+            "enabled": true,
             "id": "id",
             "ifCommand": "deadtime",
             "ifName": "app",
@@ -741,7 +764,7 @@
             "LF": true,
             "delay": 1000,
             "description": "Envia el comando al arduino para enceder la fuente del equipo",
-            "enabled": false,
+            "enabled": true,
             "end": true,
             "id": "powerOn",
             "ifCommand": "usartXfer",
@@ -750,9 +773,11 @@
             "onErr": "1",
             "onOk": "0",
             "timeout": 3000,
-            "txCommand": "powerOn"
+            "txCommand": "enableSource",
+            "txParameter": "5"
         },
         {
+            "delay": 1000,
             "description": "Abre la interfaz de comunicación con el Qibli, puede demorar mas de 30 segundos.",
             "enabled": true,
             "end": true,
@@ -765,7 +790,7 @@
         },
         {
             "description": "Lee la hora y la compara con la hora del sistema",
-            "enabled": false,
+            "enabled": true,
             "id": "checkRTC",
             "ifCommand": "usartXfer",
             "ifName": "dut",
@@ -776,7 +801,7 @@
         },
         {
             "description": "Genera la trama de configuración que se enviará al equipo.",
-            "enabled": true,
+            "enabled": false,
             "id": "userConfig",
             "ifAnswer": "%x",
             "ifCommand": "run",
@@ -789,11 +814,11 @@
         },
         {
             "description": "Enviar la configuración de funcionamiento al equipo",
-            "enabled": true,
+            "enabled": false,
             "id": "sendUserConfig",
             "ifCommand": "usartXfer",
             "ifName": "dut",
-            "name": "Envia configuración al equipo",
+            "name": "Envía configuración al equipo",
             "rxCommand": "!PG",
             "timeout": 3000,
             "txCommand": "%x"
@@ -802,7 +827,7 @@
             "CR": true,
             "LF": true,
             "description": "Envia el comando al arduino para enceder la fuente del equipo",
-            "enabled": false,
+            "enabled": true,
             "id": "powerOff",
             "ifCommand": "usartXfer",
             "ifName": "tester1",

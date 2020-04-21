@@ -5,7 +5,7 @@
 #include <QDialog>
 #include <QStringListModel>
 
-#include "jiginterface.h"
+#include "jigabstractinterface.h"
 
 namespace Ui {
 class CommandEditDialog;
@@ -28,7 +28,7 @@ public:
     void setUsbCommandsList(const QStringList &value);
 
 public slots:
-    void setInterfaces(QHash<QString, JigInterface *> *interfacesList);
+    void setInterfaces(QHash<QString, JigAbstractInterface *> *interfacesList);
 
     void setAppCommands(QStringList commandsList);
 
@@ -47,7 +47,7 @@ private slots:
 private:
     Ui::CommandEditDialog *ui;
     JigSyncCommand *command;
-    QHash<QString, JigInterface *> *interfaces;
+    QHash<QString, JigAbstractInterface *> *interfaces;
     QStringListModel *interfacesList;
     QStringListModel *commandsList;
     QStringList ttyCommandList;

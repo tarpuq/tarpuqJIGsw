@@ -7,53 +7,68 @@
     <x>0</x>
     <y>0</y>
     <width>829</width>
-    <height>261</height>
+    <height>552</height>
    </rect>
+  </property>
+  <property name="font">
+   <font>
+    <pointsize>8</pointsize>
+   </font>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
-   <property name="leftMargin">
-    <number>0</number>
+  <widget class="QTabWidget" name="tabWidget_messages">
+   <property name="geometry">
+    <rect>
+     <x>200</x>
+     <y>210</y>
+     <width>278</width>
+     <height>239</height>
+    </rect>
    </property>
-   <property name="topMargin">
-    <number>0</number>
+   <property name="currentIndex">
+    <number>1</number>
    </property>
-   <property name="rightMargin">
-    <number>0</number>
+   <widget class="QWidget" name="tab_output">
+    <attribute name="title">
+     <string>Salida</string>
+    </attribute>
+    <layout class="QGridLayout" name="gridLayout_2">
+     <item row="0" column="0">
+      <widget class="QTextBrowser" name="textBrowser_output"/>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QWidget" name="tab_debug">
+    <attribute name="title">
+     <string>Debug</string>
+    </attribute>
+    <layout class="QGridLayout" name="gridLayout_3">
+     <item row="0" column="0">
+      <widget class="QTextBrowser" name="textBrowser_debug"/>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QToolButton" name="toolButton">
+   <property name="geometry">
+    <rect>
+     <x>200</x>
+     <y>150</y>
+     <width>71</width>
+     <height>21</height>
+    </rect>
    </property>
-   <property name="bottomMargin">
-    <number>0</number>
+   <property name="text">
+    <string>Limpiar</string>
    </property>
-   <item row="0" column="0">
-    <widget class="QTabWidget" name="tabWidget_messages">
-     <property name="currentIndex">
-      <number>0</number>
-     </property>
-     <widget class="QWidget" name="tab_output">
-      <attribute name="title">
-       <string>Salida</string>
-      </attribute>
-      <layout class="QGridLayout" name="gridLayout_2">
-       <item row="0" column="0">
-        <widget class="QTextBrowser" name="textBrowser_output"/>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="tab_debug">
-      <attribute name="title">
-       <string>Debug</string>
-      </attribute>
-      <layout class="QGridLayout" name="gridLayout_3">
-       <item row="0" column="0">
-        <widget class="QTextBrowser" name="textBrowser_debug"/>
-       </item>
-      </layout>
-     </widget>
-    </widget>
-   </item>
-  </layout>
+  </widget>
+  <action name="actionClean">
+   <property name="text">
+    <string>Limpiar</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

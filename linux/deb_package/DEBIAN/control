@@ -1,0 +1,7 @@
+Package: tarpuqJIGsw
+Version: 2020.03.05
+Priority: required
+Architecture: amd64
+Depends: libqt5gui5 (>= 5.9.5), libqt5svg5 (>= 5.9.5), libqt5widgets5 (>= 5.9.5), libqt5network5 (>= 5.9.5), libqt5sql5-mysql (>= 5.9.5), libqt5qml5 (>= 5.9.5), libqt5serialport5 (>= 5.9.5)
+Maintainer: Galo Guzman <gguzman@tarpuq-ems.com>
+Description: Programa de pruebas para dispositivos desarrollados por Tarpuq Cia. Ltda.

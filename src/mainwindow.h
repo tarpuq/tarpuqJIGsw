@@ -15,7 +15,7 @@
 #include <QMdiSubWindow>
 
 #include "jigsynccommand.h"
-#include "jiginterface.h"
+#include "jigabstractinterface.h"
 #include "jigprofile.h"
 #include "loraserverapi.h"
 #include "pickit.h"
@@ -24,10 +24,10 @@
 #include "jiglogindialog.h"
 #include "synccommandlistform.h"
 #include "asynccommandlistform.h"
-#include "dutsummaryform.h"
+#include "dutpanelform.h"
 #include "console.h"
 #include "duteditdialog.h"
-#include "dutinfoform.h"
+#include "dut.h"
 
 namespace Ui {
 class MainWindow;
@@ -107,9 +107,12 @@ public:
 
     void readAppConfigFile(QByteArray data);
 
-    QByteArray buildFrameToSend(JigSyncCommand *command);
+    bool pushDatabaseRecord(Dut *dut, qint64 timeElapsed);
 
-    bool pushDatabaseRecord(DutInfoForm *dutInfo, qint64 timeElapsed);
+    bool validateStart();
+
+protected:
+    bool eventFilter(QObject *target, QEvent *event);
 
 public slots:
     void processAsyncCommand(JigSyncCommand *asyncCmd);
@@ -118,16 +121,12 @@ public slots:
 
     void setStateReadyToStart();
 
-    void dutChanged(bool state);
-
 private slots:
     void processSyncCommand();
 
     void ipeAppMessage();
 
     void ipeAppWarning();
-
-    void on_pbHex_clicked();
 
     void outputInfo(QString info, infoType type);
 
@@ -164,6 +163,16 @@ private slots:
     void on_actionShowDutInformation_triggered();
 
     void on_actionShowMessages_triggered();
+
+    void on_actionDebugControl_triggered();
+
+    void on_actionStart_triggered();
+
+    void on_actionStop_triggered();
+
+signals:
+    void started();
+    void finished(int status);
 
 private:
     Ui::MainWindow *ui;
@@ -213,7 +222,8 @@ private:
 
     int currentCommandIndex;
 
-    bool globalCommandJump;
+    bool errorEvent;
+    bool stopEvent;
     bool runingCommand;
 
     QByteArray buildCommand;
@@ -230,10 +240,10 @@ private:
     QString ifArguments;
     QString ifAnswer;
     QString ifAlias;
-    JigInterface *interface;
+    JigAbstractInterface *interface;
 
     JigProfile *profile;
-    JigSyncCommand *currentSyncCommand;
+    JigSyncCommand *currSyncCmd;
 
     QString profilePath;
 
@@ -248,7 +258,7 @@ private:
     bool profileLoaded;
     bool debugMode;
 
-    QList<DutInfoForm *> *dutList;
+    QList<Dut *> *dutList;
     QList<bool> dutStatus;
 };
 

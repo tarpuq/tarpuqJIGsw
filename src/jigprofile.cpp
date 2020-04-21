@@ -6,6 +6,7 @@
 
 #include <QDebug>
 #include <QMessageBox>
+#include <QFile>
 
 JigProfile::JigProfile(QObject *parent)
     : QObject(parent)
@@ -17,13 +18,24 @@ JigProfile::JigProfile(QObject *parent)
     panelCols = 0;
 }
 
-int JigProfile::readProfile(QByteArray data)
+int JigProfile::readProfile(QString path)
 {
     int retCode = 0;
     QJsonArray::iterator arrayIterator;
     QString error;
 
-    QJsonDocument json_document(QJsonDocument::fromJson(data));
+    QFile readFile(path);
+
+    if (!readFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        qWarning("Couldn't open profile.");
+        return EIO;
+    }
+
+    QString data = readFile.readAll();
+
+    readFile.close();
+
+    QJsonDocument json_document(QJsonDocument::fromJson(data.toUtf8()));
 
     if (json_document.isNull()) {
         qDebug() << "Error en el archivo JSON";
@@ -63,6 +75,14 @@ int JigProfile::readProfile(QByteArray data)
         fwPath = json["hexPath"].toString();
     }
 
+    if (json.contains("picTop") && json["picTop"].isString()) {
+        topPictureBase64 = json["picTop"].toString().toLatin1();
+    }
+
+    if (json.contains("picBottom") && json["picBottom"].isString()) {
+        bottomPictureBase64 = json["picBottom"].toString().toLatin1();
+    }
+
     panelAmount = panelRows * panelCols;
 
     if (json.contains("interfaces") && json["interfaces"].isArray()) {
@@ -76,14 +96,14 @@ int JigProfile::readProfile(QByteArray data)
                 QString type = interfaceObject["type"].toString();
                 QString alias = interfaceObject["alias"].toString();
 
-                JigInterface *iface = nullptr;
+                JigAbstractInterface *iface = nullptr;
 
                 if (type == "plugin") {
-                    iface = new JigInterfacePlugin();
+                    iface = new JigPluginInterface();
                 } else if (type == "tty") {
-                    iface = new JigInterfaceTty();
+                    iface = new JigTtyInterface();
                 } else if (type == "usb") {
-                    iface = new JigInterfacePickit();
+                    iface = new JigPickitInterface();
                 } else {
                     continue;
                 }
@@ -92,14 +112,14 @@ int JigProfile::readProfile(QByteArray data)
                 iface->setAlias(alias);
 
                 switch (iface->getType()) {
-                case JigInterface::none:
+                case JigAbstractInterface::none:
                     break;
-                case JigInterface::app:
+                case JigAbstractInterface::app:
                     break;
-                case JigInterface::plugin:
+                case JigAbstractInterface::plugin:
                     iface->parameters["path"] = interfaceObject["path"].toString();
                     break;
-                case JigInterface::usb:
+                case JigAbstractInterface::usb:
 
                     if (iface->getAlias().contains("pickit")) {
                         //      TODO: Test block
@@ -113,7 +133,7 @@ int JigProfile::readProfile(QByteArray data)
                         iface->parameters["ipePath"] = interfaceObject["ipePath"].toString();
                     }
                     break;
-                case JigInterface::tty:
+                case JigAbstractInterface::tty:
                     if (!interfaceObject["vid"].toString().isEmpty()) {
                         iface->parameters["vid"] = interfaceObject["vid"].toString();
                     }
@@ -136,7 +156,7 @@ int JigProfile::readProfile(QByteArray data)
         }
 
         //  Creating default app interface
-        JigInterface *iface = new JigInterface(this);
+        JigAppInterface *iface = new JigAppInterface();
         QString appAlias = "app";
         iface->setTypeStr(appAlias);
         iface->setAlias(appAlias);
@@ -253,29 +273,29 @@ int JigProfile::readProfile(QByteArray data)
     return retCode;
 }
 
-int JigProfile::writeProfile(QByteArray *data)
+int JigProfile::writeProfile(QString path)
 {
     QJsonObject json;
     QJsonArray jsonInterfaces;
     QJsonArray jsonSyncCommands;
     QJsonArray jsonAsyncCommands;
 
-    foreach (JigInterface *interface, interfaces) {
+    foreach (JigAbstractInterface *interface, interfaces) {
         QJsonObject jsonInterfaceObject;
 
         jsonInterfaceObject["alias"] = interface->getAlias();
 
         switch (interface->getType()) {
-        case JigInterface::none:
+        case JigAbstractInterface::none:
             break;
-        case JigInterface::plugin:
+        case JigAbstractInterface::plugin:
             jsonInterfaceObject["type"] = "plugin";
             jsonInterfaceObject["path"] = interface->parameters["path"].toString();
             break;
-        case JigInterface::app:
+        case JigAbstractInterface::app:
             jsonInterfaceObject["type"] = "app";
             break;
-        case JigInterface::usb: /* Pickit interface */
+        case JigAbstractInterface::usb: /* Pickit interface */
             if (!interface->getAlias().compare("pickit")) {
                 jsonInterfaceObject["type"] = "usb";
                 jsonInterfaceObject["target"] = interface->parameters["target"].toString();
@@ -288,7 +308,7 @@ int JigProfile::writeProfile(QByteArray *data)
                 jsonInterfaceObject["ipePath"] = interface->parameters["ipePath"].toString();
             }
             break;
-        case JigInterface::tty:
+        case JigAbstractInterface::tty:
             jsonInterfaceObject["type"] = "tty";
 
             if (interface->parameters["isVidPid"].toBool()) {
@@ -411,14 +431,27 @@ int JigProfile::writeProfile(QByteArray *data)
     json["isPanelized"] = isPanelized;
     json["panelRows"] = panelRows;
     json["panelCols"] = panelCols;
+    json["picTop"] = QString::fromLatin1(topPictureBase64);
+    json["picBottom"] = QString::fromLatin1(bottomPictureBase64);
     json["interfaces"] = jsonInterfaces;
     json["hexPath"] = fwPath;
     json["syncCommands"] = jsonSyncCommands;
     json["asyncCommands"] = jsonAsyncCommands;
 
     QJsonDocument jsonDoc(json);
-    data->clear();
-    data->append(jsonDoc.toJson());
+
+    //  Save file
+    QFile saveFile(path);
+
+    if(!saveFile.open(QIODevice::WriteOnly | QIODevice::Text)){
+        return EIO;
+    }
+
+    QTextStream stream(&saveFile);
+    stream.setCodec("UTF-8");
+    stream << jsonDoc.toJson();
+
+    saveFile.close();
 
     return 0;
 }
@@ -493,17 +526,17 @@ bool JigProfile::isCommandValid(JigSyncCommand *command)
     int index = 0;
 
     switch (interfaces[command->getInterfaceName()]->getType()) {
-    case JigInterface::tty:
-        index = JigInterfaceTty::getDefaultCommands().indexOf(command->getInterfaceCommand());
+    case JigAbstractInterface::tty:
+        index = JigTtyInterface::getDefaultCommands().indexOf(command->getInterfaceCommand());
         break;
-    case JigInterface::usb:
-        index = JigInterfacePickit::getDefaultCommands().indexOf(command->getInterfaceCommand());
+    case JigAbstractInterface::usb:
+        index = JigPickitInterface::getDefaultCommands().indexOf(command->getInterfaceCommand());
         break;
-    case JigInterface::plugin:
-        index = JigInterfacePlugin::getDefaultCommands().indexOf(command->getInterfaceCommand());
+    case JigAbstractInterface::plugin:
+        index = JigPluginInterface::getDefaultCommands().indexOf(command->getInterfaceCommand());
         break;
-    case JigInterface::app:
-        index = JigInterfaceApp::getDefaultCommands().indexOf(command->getInterfaceCommand());
+    case JigAbstractInterface::app:
+        index = JigAppInterface::getDefaultCommands().indexOf(command->getInterfaceCommand());
         break;
     default:
         break;
@@ -514,6 +547,26 @@ bool JigProfile::isCommandValid(JigSyncCommand *command)
     } else {
         return true;
     }
+}
+
+QByteArray JigProfile::getTopPictureBase64() const
+{
+    return topPictureBase64;
+}
+
+void JigProfile::setTopPictureBase64(const QByteArray &value)
+{
+    topPictureBase64 = value;
+}
+
+QByteArray JigProfile::getBottomPictureBase64() const
+{
+    return bottomPictureBase64;
+}
+
+void JigProfile::setBottomPictureBase64(const QByteArray &value)
+{
+    bottomPictureBase64 = value;
 }
 
 void JigProfile::setPanelAmount(int value)

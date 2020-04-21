@@ -10,7 +10,7 @@ Pickit::Pickit(QObject *parent)
 {
     connect(this, &Pickit::readyReadStandardOutput, this, &Pickit::ipeStdout);
     connect(this, &Pickit::readyReadStandardError, this, &Pickit::ipeStderr);
-    connect(this, qOverload<int, QProcess::ExitStatus>(&Pickit::finished), [this]() {
+    connect(this, QOverload<int, QProcess::ExitStatus>::of(&Pickit::finished), [this](int exitCode, QProcess::ExitStatus exitStatus) {
         this->prvState = Off;
     });
     connect(this, &Pickit::started, [this]() { this->prvState = Starting; });
@@ -54,7 +54,8 @@ void Pickit::restart()
 
 void Pickit::setIfArguments(const QString &value, const QHash<QString, QByteArray> &wildcard)
 {
-
+    (void) value;
+    (void) wildcard;
 }
 
 void Pickit::ipeStdout()

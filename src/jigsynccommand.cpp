@@ -151,6 +151,34 @@ void JigSyncCommand::setMeasureError(QString value)
     treeItem->setForeground(colMeasure,brush);
 }
 
+QByteArray JigSyncCommand::buildFrameToSend(QHash<QString, QByteArray> *wildcard)
+{
+    QByteArray ans;
+    QByteArray builded;
+
+    if (!this->getTxCommand().isEmpty()) {
+        //        Wildcard for random variables
+        if (this->getTxCommand().contains("%")) {
+            builded = wildcard->value(this->getTxCommand());
+        } else {
+            builded = this->getTxCommand().toLatin1();
+        }
+
+        if (this->isTxArguments()) {
+            builded.append(" ");
+
+            //        Wildcard for random variables
+            if (this->getTxArguments().contains("%")) {
+                builded.append(wildcard->value(this->getTxArguments()));
+            } else {
+                builded.append(this->getTxArguments());
+            }
+        }
+    }
+
+    return builded;
+}
+
 bool JigSyncCommand::getUseMeanFormula() const
 {
     return useMeanFormula;
@@ -502,6 +530,9 @@ void JigSyncCommand::setStatusItem(QTreeWidgetItem *item, JigSyncCommand::JigCom
     case running:
         strStatus = "En ejecución";
         break;
+    case expand:
+        strStatus = "Desplegado";
+        break;
     case jump:
         strStatus = "Salta";
         brush.setColor(Qt::blue);
@@ -540,12 +571,14 @@ bool JigSyncCommand::isOnError()
     return !this->onError.isEmpty();
 }
 
-int JigSyncCommand::processAnswers(QStringList answers, QHash<QString, QByteArray> *wildcard, int index, QList<bool> *flags, QStringList *report)
+int JigSyncCommand::processAnswers(QStringList answers, QHash<QString, QByteArray> *wildcard, int index, QList<bool> *flags, QStringList *report, QList<bool> f_jump)
 {
     QTreeWidgetItem *item;
     int err = 0;
     int status;
     int i = 0;
+
+    QString prefix = "";
 
     if(answers.isEmpty())
         return 1;
@@ -554,54 +587,77 @@ int JigSyncCommand::processAnswers(QStringList answers, QHash<QString, QByteArra
 
     foreach(QString ansX, answers){
         status = 1;
-        //  Check if answer is array
-        if(answers.size() > 1){
-            QTreeWidgetItem *child = new QTreeWidgetItem(this->treeItem);
-            child->setText(colTest, QString("Dispositivo %1").arg(i + 1));
-            child->setText(colMin, this->treeItem->text(colMin));
-            child->setTextAlignment(colMin,Qt::AlignCenter);
-            child->setText(colMeasure, this->treeItem->text(colMeasure));
-            child->setTextAlignment(colMeasure,Qt::AlignCenter);
-            child->setText(colMax, this->treeItem->text(colMax));
-            child->setTextAlignment(colMax,Qt::AlignCenter);
-            item = child;
-        } else {
-            item = this->treeItem;
-        }
 
-        if(rxAnswers.contains("%")){    //  Wildcard
-            if(rxAnswers == "%D"){  //  Date
-                status = compareDate(ansX);
-            } else if (rxAnswers == "%measure") {   //  Measure
-                status = processMeasure(item, ansX);
-            } else if (rxAnswers == "%serialNumber") {   //  Measure
-                if (wildcard->value("%serialNumber") == ansX)
-                    status = 0;
-            } else if (rxAnswers == "%x") {   //  Hexadecimal value
-                wildcard->insert("%x", QByteArray::fromHex(ansX.toLatin1()));
-                status = 0;
+        *flags << false;
+
+        if(!f_jump.at(i)){
+            //  Check if answer is array
+            if(answers.size() > 1){
+                this->setStatus(JigCommandState::expand);
+                this->treeItem->setText(colMeasure, QString::number(this->mean));
+
+                QTreeWidgetItem *child = new QTreeWidgetItem(this->treeItem);
+                child->setText(colTest, QString("DUT %1").arg(i + 1));
+                child->setTextAlignment(colTest,Qt::AlignLeft);
+                child->setText(colMin, this->treeItem->text(colMin));
+                child->setTextAlignment(colMin,Qt::AlignCenter);
+                child->setText(colMeasure, this->treeItem->text(colMeasure));
+                child->setTextAlignment(colMeasure,Qt::AlignCenter);
+                child->setText(colMax, this->treeItem->text(colMax));
+                child->setTextAlignment(colMax,Qt::AlignCenter);
+
+                prefix = "        ";
+
+                item = child;
             } else {
+                prefix = "";
+
+                item = this->treeItem;
             }
-        } else {    //  Normal
-            if(rxAnswers == ansX){
-                status = 0;
+
+            if(rxAnswers.contains("%")){    //  Wildcard
+                if(rxAnswers == "%D"){  //  Date
+                    status = compareDate(ansX);
+                } else if (rxAnswers == "%measure") {   //  Measure
+                    status = processMeasure(item, ansX);
+                } else if (rxAnswers == "%serialNumber") {   //  Measure
+                    if (wildcard->value("%serialNumber") == ansX)
+                        status = 0;
+                } else if (rxAnswers == "%x") {   //  Hexadecimal value
+                    wildcard->insert("%x", QByteArray::fromHex(ansX.toLatin1()));
+                    status = 0;
+                } else {
+                }
+            } else {    //  Normal
+                if(rxAnswers == ansX){
+                    status = 0;
+                }
             }
-        }
 
-        if(!status){
-            this->setStatusItem(item,ok);
+            switch (status) {
+            case 0:
+                flags->replace(i, false);
+                this->setStatusItem(item,JigCommandState::ok);
+                break;
+            case 1:
+                err = 1;
 
-            *flags << false;
+                *report << QString::number(index) + ":" + this->getId();
+                *report << this->messageOnError;
+                *report << ansX;
 
-        }else{
-            err = 1;
+                flags->replace(i, true);
+                this->setStatusItem(item,JigCommandState::fail);
+                break;
+            default:
+                break;
+            }
 
-            *report << QString::number(index) + ":" + this->getId();
-            *report << this->messageOnError;
-            *report << ansX;
-
-            *flags << true;
-            this->setStatusItem(item,fail);
+            item->setText(colTest, item->text(colTest).prepend(prefix));
+            item->setText(colMin, item->text(colMin).prepend(prefix));
+            item->setText(colMeasure, item->text(colMeasure).prepend(prefix));
+            item->setText(colMax, item->text(colMax).prepend(prefix));
+            item->setText(colState, item->text(colState).prepend(prefix));
         }
 
         i++;

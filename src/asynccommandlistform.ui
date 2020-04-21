@@ -22,6 +22,11 @@
     <height>100</height>
    </size>
   </property>
+  <property name="font">
+   <font>
+    <pointsize>8</pointsize>
+   </font>
+  </property>
   <property name="windowTitle">
    <string>Comandos Opcionales</string>
   </property>

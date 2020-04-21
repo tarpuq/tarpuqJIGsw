@@ -4,7 +4,7 @@
 #include <QDialog>
 #include <QStringListModel>
 
-#include "jiginterface.h"
+#include "jigabstractinterface.h"
 
 #include <QLabel>
 #include <QTableWidgetItem>
@@ -21,10 +21,10 @@ public:
     explicit InterfaceEditDialog(QWidget *parent = nullptr);
     ~InterfaceEditDialog();
 
-    QList<JigInterface *> interfaces;
+    QList<JigAbstractInterface *> interfaces;
     QList<QHash<QString, QVariant>> parametersIndex;
 
-    void setInterfaces(QList<JigInterface *> interfaces);
+    void setInterfaces(QList<JigAbstractInterface *> interfaces);
 
     int currentInterfaceIndex;
 
@@ -39,7 +39,7 @@ private slots:
 
 private:
     Ui::InterfaceEditDialog *ui;
-    QList<JigInterface::JigInterfaceType> typesIndex;
+    QList<JigAbstractInterface::JigInterfaceType> typesIndex;
     QStringListModel *types;
 };
 

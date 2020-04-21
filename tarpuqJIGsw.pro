@@ -5,7 +5,7 @@
 #-------------------------------------------------
 
 QT       += core gui sql network xml serialport qml
-CONFIG   += c++17
+CONFIG   += c++11
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -13,10 +13,16 @@ TARGET = tarpuqJIGsw
 TEMPLATE = app
 
 SOURCES += src/main.cpp\
+        src/debugcontrolui.cpp \
+        src/dut.cpp \
+        src/dutpanelform.cpp \
+        src/jigabstractinterface.cpp \
+        src/jigappinterface.cpp \
+        src/jigpickitinterface.cpp \
+        src/jigplugininterface.cpp \
+        src/jigttyinterface.cpp \
         src/messagesform.cpp \
         src/asynccommandlistform.cpp \
-        src/dutinfoform.cpp \
-        src/dutsummaryform.cpp \
         src/console.cpp \
         src/commandeditdialog.cpp \
         src/duteditdialog.cpp \
@@ -24,11 +30,6 @@ SOURCES += src/main.cpp\
         src/gtreewidget.cpp \
         src/interfaceeditdialog.cpp \
         src/jigasynccommand.cpp \
-        src/jiginterfaceapp.cpp \
-        src/jiginterfacepickit.cpp \
-        src/jiginterfaceplugin.cpp \
-        src/jiginterfacetty.cpp \
-        src/jiginterface.cpp \
         src/jigprofile.cpp \
         src/jigsynccommand.cpp \
         src/logindialog.cpp \
@@ -38,22 +39,23 @@ SOURCES += src/main.cpp\
         src/synccommandlistform.cpp
 
 HEADERS  += src/mainwindow.h \
+        src/debugcontrolui.h \
+        src/dut.h \
+        src/dutpanelform.h \
+        src/jigabstractinterface.h \
+        src/jigappinterface.h \
+        src/jigpickitinterface.h \
+        src/jigplugininterface.h \
+        src/jigttyinterface.h \
         src/messagesform.h \
         src/asynccommandlistform.h \
-        src/dutinfoform.h \
-        src/dutsummaryform.h \
         src/console.h \
         src/commandeditdialog.h \
         src/duteditdialog.h \
         src/gtablewidget.h \
         src/gtreewidget.h \
         src/jigasynccommand.h \
-        src/jiginterfaceapp.h \
         src/jiginterfaceeditdialog.h \
-        src/jiginterfacepickit.h \
-        src/jiginterfaceplugin.h \
-        src/jiginterfacetty.h \
-        src/jiginterface.h \
         src/jiglogindialog.h \
         src/jigprofile.h \
         src/jigsynccommand.h \
@@ -62,10 +64,11 @@ HEADERS  += src/mainwindow.h \
         src/synccommandlistform.h
 
 FORMS    += src/mainwindow.ui \
+            src/debugcontrolui.ui \
+            src/dut.ui \
+            src/dutpanelform.ui \
             src/messagesform.ui \
             src/asynccommandlistform.ui \
-            src/dutinfoform.ui \
-            src/dutsummaryform.ui \
             src/console.ui \
             src/commandeditdialog.ui \
             src/duteditdialog.ui \
@@ -104,7 +107,7 @@ DLLDESTDIR = $${DEST_DIRECTORY}/bin
 DESTDIR    = $${DEST_DIRECTORY}/bin
 
 # The application version
-VERSION = 2020.01.14
+VERSION = 2020.04.21
 
 # Define the preprocessor macro to get the application version in our application.
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"

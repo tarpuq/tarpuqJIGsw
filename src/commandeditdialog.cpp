@@ -1,10 +1,10 @@
 #include "commandeditdialog.h"
 #include "ui_commandeditdialog.h"
 
-#include "jiginterfaceapp.h"
-#include "jiginterfacepickit.h"
-#include "jiginterfaceplugin.h"
-#include "jiginterfacetty.h"
+#include "jigappinterface.h"
+#include "jigpickitinterface.h"
+#include "jigplugininterface.h"
+#include "jigttyinterface.h"
 
 #include <QDebug>
 
@@ -18,10 +18,10 @@ CommandEditDialog::CommandEditDialog(QWidget *parent)
 
     commandsList = new QStringListModel(this);
 
-    setAppCommands(JigInterfaceApp::getDefaultCommands());
-    setTtyCommandsList(JigInterfaceTty::getDefaultCommands());
-    setUsbCommandsList(JigInterfacePickit::getDefaultCommands());
-    setPluginCommandsList(JigInterfacePlugin::getDefaultCommands());
+    setAppCommands(JigAppInterface::getDefaultCommands());
+    setTtyCommandsList(JigTtyInterface::getDefaultCommands());
+    setUsbCommandsList(JigPickitInterface::getDefaultCommands());
+    setPluginCommandsList(JigPluginInterface::getDefaultCommands());
 
     ui->comboBox_tool->setModel(interfacesList);
 
@@ -119,7 +119,7 @@ void CommandEditDialog::on_buttonBox_accepted()
     command->setStatus(JigSyncCommand::pending);
 }
 
-void CommandEditDialog::setInterfaces(QHash<QString, JigInterface *> *interfaces)
+void CommandEditDialog::setInterfaces(QHash<QString, JigAbstractInterface *> *interfaces)
 {
     this->interfaces = interfaces;
     interfacesList->setStringList(this->interfaces->keys());
@@ -174,17 +174,17 @@ void CommandEditDialog::on_comboBox_tool_currentIndexChanged(const QString &arg1
     if(arg1.isEmpty())
         return;
 
-    JigInterface::JigInterfaceType type = JigInterface::none;
+    JigAbstractInterface::JigInterfaceType type = JigAbstractInterface::none;
     type = interfaces->value(arg1)->getType();
 
     switch (type) {
-    case JigInterface::tty:
+    case JigAbstractInterface::tty:
         this->commandsList->setStringList(ttyCommandList);
         break;
-    case JigInterface::usb:
+    case JigAbstractInterface::usb:
         this->commandsList->setStringList(usbCommandList);
         break;
-    case JigInterface::plugin:
+    case JigAbstractInterface::plugin:
         this->commandsList->setStringList(pluginCommandList);
         break;
     default:

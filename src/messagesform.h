@@ -22,6 +22,9 @@ public slots:
     void clearOutputMessage();
     void clearDebugMessage();
 
+private slots:
+    void on_toolButton_triggered(QAction *arg1);
+
 private:
     Ui::MessagesForm *ui;
 };

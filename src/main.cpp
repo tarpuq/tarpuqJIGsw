@@ -6,8 +6,10 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
 
     //  Application version
-    a.setApplicationVersion(APP_VERSION);
+    a.setOrganizationName("Tarpuq Cia. Ltda.");
+    a.setOrganizationDomain("tarpuq-ems.com");
     a.setApplicationName("tarpuqJIGsw");
+    a.setApplicationVersion(APP_VERSION);
 
     MainWindow w;
     w.showMaximized();

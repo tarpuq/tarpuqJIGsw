@@ -4,10 +4,10 @@
 #include "jigsynccommand.h"
 #include <QObject>
 
-#include "jiginterfaceapp.h"
-#include "jiginterfacepickit.h"
-#include "jiginterfaceplugin.h"
-#include "jiginterfacetty.h"
+#include "jigappinterface.h"
+#include "jigpickitinterface.h"
+#include "jigplugininterface.h"
+#include "jigttyinterface.h"
 
 class JigProfile : public QObject
 {
@@ -15,12 +15,12 @@ class JigProfile : public QObject
 public:
     explicit JigProfile(QObject *parent = nullptr);
 
-    int readProfile(QByteArray data);
-    int writeProfile(QByteArray *data);
+    int readProfile(QString path);
+    int writeProfile(QString path);
 
     QList<JigSyncCommand *> syncCommands;
     QList<JigSyncCommand *> asyncCommands;
-    QHash<QString, JigInterface *> interfaces;
+    QHash<QString, JigAbstractInterface *> interfaces;
 
     QString getFwPath() const;
     void setFwPath(const QString &value);
@@ -50,6 +50,11 @@ public:
 
     bool isCommandValid(JigSyncCommand *command);
 
+    QByteArray getTopPictureBase64() const;
+    void setTopPictureBase64(const QByteArray &value);
+
+    QByteArray getBottomPictureBase64() const;
+    void setBottomPictureBase64(const QByteArray &value);
 
 signals:
 
@@ -62,6 +67,8 @@ private:
     int panelRows;
     int panelCols;
     int panelAmount;
+    QByteArray topPictureBase64;
+    QByteArray bottomPictureBase64;
 
     QString fwPath;
 };

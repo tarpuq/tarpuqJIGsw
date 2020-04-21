@@ -6,9 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>274</width>
-    <height>235</height>
+    <width>597</width>
+    <height>351</height>
    </rect>
+  </property>
+  <property name="font">
+   <font>
+    <pointsize>8</pointsize>
+   </font>
   </property>
   <property name="windowTitle">
    <string>Lista de Comandos</string>
@@ -23,6 +28,11 @@
    </item>
    <item>
     <widget class="GTreeWidget" name="treeWidget">
+     <property name="font">
+      <font>
+       <pointsize>8</pointsize>
+      </font>
+     </property>
      <property name="alternatingRowColors">
       <bool>true</bool>
      </property>
@@ -139,12 +149,6 @@
    <class>GTreeWidget</class>
    <extends>QTreeWidget</extends>
    <header>gtreewidget.h</header>
-  </customwidget>
-  <customwidget>
-   <class>QMdiSubWindow</class>
-   <extends>QWidget</extends>
-   <header>qmdisubwindow.h</header>
-   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources>

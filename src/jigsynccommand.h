@@ -8,16 +8,31 @@
 class JigSyncCommand : public QObject
 {
     Q_OBJECT
+    Q_ENUMS(JigCommandState)
+    Q_ENUMS(JigCommandColumn)
+
 public:
     explicit JigSyncCommand(QObject *parent = nullptr);
     JigSyncCommand(QObject *parent, const JigSyncCommand &other);
     JigSyncCommand &operator=(const JigSyncCommand &other);
 
-    enum JigCommandState { pending, delay, running, jump, ok, fail };
-    Q_ENUM(JigCommandState)
+    enum JigCommandState {
+        pending,
+        delay,
+        running,
+        expand,
+        jump,
+        ok,
+        fail
+    };
 
-    enum JigCommandColumn { colTest, colMin, colMeasure, colMax, colState };
-    Q_ENUM(JigCommandColumn)
+    enum JigCommandColumn {
+        colTest,
+        colMin,
+        colMeasure,
+        colMax,
+        colState
+    };
 
     QString messageOnOk;
     QString messageOnError;
@@ -114,6 +129,8 @@ public:
     void refreshState();
     void setMeasureError(QString value);
 
+    QByteArray buildFrameToSend(QHash<QString, QByteArray> *wildcard);
+
 private:
     QString id;
     QString name;
@@ -158,7 +175,7 @@ public slots:
     bool isOnOk(void);
     bool isOnError(void);
 
-    int processAnswers(QStringList answers, QHash<QString, QByteArray> *wildcard, int index, QList<bool> *flags, QStringList *report);
+    int processAnswers(QStringList answers, QHash<QString, QByteArray> *wildcard, int index, QList<bool> *flags, QStringList *report, QList<bool> f_jump);
 };
 
 #endif // JIGCOMMAND_H

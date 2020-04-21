@@ -21,10 +21,14 @@ public:
     void refreshUI();
 
 signals:
-    void dutUpdated();
+    void updated();
 
 private slots:
     void on_buttonBox_accepted();
+
+    void on_pushButton_loadTopPicture_clicked();
+
+    void on_pushButton_loadBottomPicture_clicked();
 
 private:
     Ui::DutEditDialog *ui;

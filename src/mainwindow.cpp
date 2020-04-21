@@ -64,7 +64,10 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    //  State Machine
+    //  Init State Machine
+    stopEvent = false;
+    errorEvent = false;
+    profileLoaded = false;
     currentState = stateInitApp;
     nextState = stateInitApp;
     lastState = stateInitApp;
@@ -87,7 +90,7 @@ MainWindow::MainWindow(QWidget *parent)
     //      JIGsaw
     profile = new JigProfile(this);
     dutEditorDialog->setProfile(profile);
-    connect(dutEditorDialog,&DutEditDialog::dutUpdated,this,&MainWindow::updateDutInfo);
+    connect(dutEditorDialog,&DutEditDialog::updated,this,&MainWindow::updateDutInfo);
 
     //  Application configurations
     QFile configFilePath(searchConfigFile());
@@ -140,24 +143,51 @@ MainWindow::MainWindow(QWidget *parent)
         if (ans) {
             debugMode = true;
             ui->statusBar->showMessage("Debug");
+            ui->actionDebugControl->setEnabled(true);
+
+            //  Debug Window
+            connect(ui->debugCtrlUi,
+                    &DebugControlUi::start,
+                    ui->actionStart,
+                    &QAction::trigger);
+
+            connect(this,
+                    &MainWindow::finished,
+                    ui->debugCtrlUi,
+                    &DebugControlUi::finished);
+
             QMessageBox::information(this, "Aviso", "Modo Debug activado");
         } else {
             debugMode = false;
             ui->statusBar->clearMessage();
+            ui->actionDebugControl->setEnabled(false);
+            ui->debugCtrlUi->close();
+
+            //  Debug Window
+            disconnect(ui->debugCtrlUi,
+                    &DebugControlUi::start,
+                    ui->actionStart,
+                    &QAction::trigger);
+
+            disconnect(this,
+                    &MainWindow::finished,
+                    ui->debugCtrlUi,
+                    &DebugControlUi::finished);
+
             QMessageBox::information(this, "Aviso", "Contraseña incorrecta");
         }
     });
     connect(login, &LoginDialog::finished, [this]() { this->setEnabled(true); });
     connect(login, &LoginDialog::rejected, [this]() { this->setEnabled(true); });
 
-    profileLoaded = false;
-
     //  SyncCommandList
     ui->syncCommandListUi->setCommandList(&profile->syncCommands);
-    connect(ui->syncCommandListUi, &SyncCommandListForm::commandEdited, [this](JigSyncCommand *cmd) {
-        commandEditorDialog->loadCommand(0, cmd);
-        commandEditorDialog->show();
-    });
+    connect(ui->syncCommandListUi,
+            &SyncCommandListForm::commandEdited,
+            [this](JigSyncCommand *cmd) {
+                commandEditorDialog->loadCommand(0, cmd);
+                commandEditorDialog->show();
+            });
 
     //  ASyncCommandList
     connect(ui->asyncCommandListUi,
@@ -166,20 +196,18 @@ MainWindow::MainWindow(QWidget *parent)
             &MainWindow::processAsyncCommand);
 
     //  Dut Summary Form
-    connect(ui->dutSummaryUi,
-            &DutSummaryForm::dutsReady,
+    connect(ui->dutPanelUi,
+            &DutPanelForm::dutsReady,
             this,
             &MainWindow::setStateReadyToStart);
-
-    connect(ui->dutSummaryUi,
-            &DutSummaryForm::dutChanged,
-            this,
-            &MainWindow::dutChanged);
 
     foreach(QMdiSubWindow *subwindow, ui->mdiArea->subWindowList()){
         subwindow->setAttribute(Qt::WA_DeleteOnClose, false);
         subwindow->close();
     }
+
+    //  DockWindow
+    ui->dockWidget->close();
 
     //  Style
     qApp->setStyle(QStyleFactory::create("Fusion"));
@@ -207,7 +235,15 @@ MainWindow::MainWindow(QWidget *parent)
     qApp->setPalette(darkPalette);
 
     qApp->setStyleSheet(
-        "QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }");
+        "QToolTip { "
+        "color: #ffffff; "
+        "background-color: #2a82da; "
+        "border: 1px solid white; "
+        "}"
+        );
+
+    QFont defFont("Open Sans",8);
+    qApp->setFont(defFont);
 
     //  UI first state
     ui->actionSave->setEnabled(false);
@@ -215,6 +251,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->actionEditDut->setEnabled(false);
 
     debugMode = false;
+
+    installEventFilter(this);
 }
 
 MainWindow::~MainWindow()
@@ -287,35 +325,7 @@ void MainWindow::readAppConfigFile(QByteArray data)
     device->setDeviceProfileId("7292e595-8850-435a-b82f-32c06b40c97a");
 }
 
-QByteArray MainWindow::buildFrameToSend(JigSyncCommand *command)
-{
-    QByteArray ans;
-    QByteArray builded;
-
-    if (!command->getTxCommand().isEmpty()) {
-        //        Wildcard for random variables
-        if (command->getTxCommand().contains("%")) {
-            builded = wildcard[command->getTxCommand()];
-        } else {
-            builded = command->getTxCommand().toLatin1();
-        }
-
-        if (command->isTxArguments()) {
-            builded.append(" ");
-
-            //        Wildcard for random variables
-            if (command->getTxArguments().contains("%")) {
-                builded.append(wildcard[command->getTxArguments()]);
-            } else {
-                builded.append(command->getTxArguments());
-            }
-        }
-    }
-
-    return builded;
-}
-
-bool MainWindow::pushDatabaseRecord(DutInfoForm *dutInfo, qint64 timeElapsed)
+bool MainWindow::pushDatabaseRecord(Dut *dut, qint64 timeElapsed)
 {
     QSqlDatabase db = QSqlDatabase::database("dbConexion");
     QSqlQuery query(db);
@@ -323,7 +333,7 @@ bool MainWindow::pushDatabaseRecord(DutInfoForm *dutInfo, qint64 timeElapsed)
     bool ans = true;
 
     bool state = false;
-    if(dutInfo->getStatus() == 1){
+    if(dut->getStatus() == Dut::pass){
         state = true;
     }
 
@@ -346,11 +356,11 @@ bool MainWindow::pushDatabaseRecord(DutInfoForm *dutInfo, qint64 timeElapsed)
                   "CURRENT_TIMESTAMP(),"
                   ":tiempoOperacion)");
     query.bindValue(":idProducto", idProducto);
-    query.bindValue(":serialNumber", dutInfo->getSerialNumber());
+    query.bindValue(":serialNumber", dut->getSerialNumber());
     query.bindValue(":state", state);
-    query.bindValue(":report", dutInfo->getFails().join(";"));
-    query.bindValue(":notes", dutInfo->getComments().join(";"));
-    query.bindValue(":measure", dutInfo->getMeasures().join(";"));
+    query.bindValue(":report", dut->getFails().join(";"));
+    query.bindValue(":notes", dut->getComments().join(";"));
+    query.bindValue(":measure", dut->getMeasures().join(";"));
     query.bindValue(":tiempoOperacion", timeElapsed);
 
     if (!query.exec()) {
@@ -361,11 +371,58 @@ bool MainWindow::pushDatabaseRecord(DutInfoForm *dutInfo, qint64 timeElapsed)
     return ans;
 }
 
+bool MainWindow::validateStart()
+{
+    if (profile->availableInterfaces.contains("pickit")){
+        JigPickitInterface *pickit = static_cast<JigPickitInterface *>(profile->interfaces["pickit"]);
+
+        if (pickit->getIpePath().isEmpty()) {
+            QMessageBox::warning(this, "Alerta", "Ruta del IPE no especificada");
+            return false;
+        }
+
+        if (pickit->getBur().isEmpty()) {
+            QMessageBox::warning(this, "Alerta", "Número de serie del programador no especificado");
+            return false;
+        }
+        if (!QFile(pickit->getIpePath()).exists()) {
+            QMessageBox::warning(this, "Alerta", "La ruta de MPLAB X IPE es incorrecta");
+            return false;
+        }
+    }
+
+    if (profile->getFwPath().isEmpty()) {
+        QMessageBox::warning(this, "Alerta", "Ruta del HEX no especificada");
+        return false;
+    }
+    if (!ui->dutPanelUi->isReady()) {
+        QMessageBox::warning(this, "Alerta", "Uno o más de los números de serie está incompleto o repetido");
+        return false;
+    }
+    if (profile->syncCommands.size() == 0) {
+        QMessageBox::warning(this, "Alerta", "No se ha cargado un perfil de pruebas");
+        return false;
+    }
+
+    return true;
+}
+
+bool MainWindow::eventFilter(QObject *target, QEvent *event)
+{
+    if (event->type() == QEvent::KeyPress) {
+        //qDebug() << "events" << target << event;
+    }
+    if (event->type() == QEvent::KeyRelease) {
+        //qDebug() << "events" << target << event;
+    }
+    return QObject::eventFilter(target, event);
+}
+
 void MainWindow::processAsyncCommand(JigSyncCommand *asyncCmd)
 {
     QString ifName;
     QString ifCmd;
-    JigInterface *iface;
+    JigAbstractInterface *iface;
 
     ifName = asyncCmd->getInterfaceName();
     ifCmd = asyncCmd->getInterfaceCommand();
@@ -398,7 +455,7 @@ void MainWindow::processAsyncCommand(JigSyncCommand *asyncCmd)
             return;
         }
 
-        command2Send = buildFrameToSend(asyncCmd);
+        command2Send = asyncCmd->buildFrameToSend(&wildcard);
 
         if (asyncCmd->getIsCrc16()) {
         }
@@ -423,37 +480,50 @@ void MainWindow::updateDutInfo()
     ui->lineEditProjectName->setText(profile->getProductName());
 
     //  Temp
-    dutList = ui->dutSummaryUi->createDutMatrix(profile->getPanelRows(),profile->getPanelCols());
+    dutList = ui->dutPanelUi->createDutMatrix(profile->getPanelRows(),profile->getPanelCols());
 }
 
 void MainWindow::setStateReadyToStart()
 {
-    if(ui->dutSummaryUi->isReady()){
-        nextState = stateReadyToStart;
+    if(ui->dutPanelUi->isReady()){
+        bool serialsComplete = false;
+        bool allSerialsComplete = true;
 
-        QString series = ui->dutSummaryUi->getSerialNumbersList().join(' ');
+        foreach(QString str, ui->dutPanelUi->getSerialNumbersList()){
+            if(str != '0')
+                serialsComplete = true;
 
-        QString msg = QString("Detectado número(s) de serie %1\r").arg(series);
-        outputInfo(msg, normal);
-
-        foreach (JigSyncCommand *cmd, profile->syncCommands) {
-            cmd->clearMeasure();
-            cmd->setStatus(JigSyncCommand::pending);
+            if(str == '0')
+                allSerialsComplete = false;
         }
-    }
-}
 
-void MainWindow::dutChanged(bool state)
-{
-    if(!state){
-        ui->dockWidgetContents->clearOutputMessage();
-        nextState = stateCheckProfile;
+        if(serialsComplete){
+            nextState = stateReadyToStart;
+
+            QString series = ui->dutPanelUi->getSerialNumbersList().join(' ');
+
+            ui->messagesBox->clearOutputMessage();
+
+            QString msg = QString("Detectado número(s) de serie %1\r").arg(series);
+            outputInfo(msg, normal);
+
+            foreach (JigSyncCommand *cmd, profile->syncCommands) {
+                cmd->clearMeasure();
+                cmd->setStatus(JigSyncCommand::pending);
+            }
+
+            if (allSerialsComplete){
+                ui->pushButtonStart->setFocus();
+            }
+
+        } else {
+            nextState = stateCheckProfile;
+        }
     }
 }
 
 void MainWindow::processSyncCommand()
 {
-    bool state = false;
     QString cmdSend;
     QString cmdEcho;
     QString answer;
@@ -468,6 +538,7 @@ void MainWindow::processSyncCommand()
     qint32 wildcardInt;
     int stateMachineTimerInterval = 10;
     int ans;
+    int errorTest;
 
     qint64 tiempoOperacion = 0;
 
@@ -498,10 +569,10 @@ void MainWindow::processSyncCommand()
 
         switch (currentState) {
         case stateInitApp:
-            globalCommandJump = false;
             nextState = stateCheckProfile;
             break;
         case stateCheckProfile:
+            ui->pushButtonStart->setEnabled(false);
             ui->statusBar->showMessage("Abra el perfil a utilizar");
 
             if (profileLoaded)
@@ -516,8 +587,6 @@ void MainWindow::processSyncCommand()
         case stateReadyToStart:
             if (lastState == stateIdle) {
                 ui->pushButtonStart->setEnabled(true);
-                ui->pushButtonStart->setFocus();
-
                 ui->statusBar->showMessage("Pulse 'Iniciar' para empezar");
             }
             break;
@@ -529,16 +598,17 @@ void MainWindow::processSyncCommand()
             ui->syncCommandListUi->cleanUI();
             ui->syncCommandListUi->scrollToTop();
 
-            ui->dutSummaryUi->cleanUI();
+            ui->dutPanelUi->cleanUI();
 
-            ui->dockWidgetContents->clearOutputMessage();
+            ui->messagesBox->clearOutputMessage();
 
             reportFails.clear();
             reportComment.clear();
             reportMeasure.clear();
             chrono.restart();
 
-            globalCommandJump = false;
+            stopEvent = false;
+            errorEvent = false;
             runingCommand = false;
 
             wildcard.clear();
@@ -547,8 +617,20 @@ void MainWindow::processSyncCommand()
             dutStatus.clear();
 
             for(int i = 0; i < profile->getPanelAmount(); i++){
+                Dut *dut = dutList->at(i);
+
+                if(dut->getActivated()){
+                    dut->setStatus(Dut::wait);
+                } else {
+                    dut->setStatus(Dut::idle);
+                }
+
+                dut->setError(false);
+
                 dutStatus << true;
             }
+
+            emit started();
 
             errors = 0;
             currentCommandIndex = 0;
@@ -566,17 +648,17 @@ void MainWindow::processSyncCommand()
                 break;
             }
 
-            currentSyncCommand = profile->syncCommands[currentCommandIndex];
+            currSyncCmd = profile->syncCommands[currentCommandIndex];
 
-            ui->syncCommandListUi->scrollToItem(currentSyncCommand->treeItem);
+            ui->syncCommandListUi->scrollToItem(currSyncCmd->treeItem);
 
-            ifCommand = currentSyncCommand->getInterfaceCommand();
-            ifArguments = currentSyncCommand->getInterfaceArguments();
-            ifAnswer = currentSyncCommand->getInterfaceAnswer();
-            ifAlias = currentSyncCommand->getInterfaceName();
+            ifCommand = currSyncCmd->getInterfaceCommand();
+            ifArguments = currSyncCmd->getInterfaceArguments();
+            ifAnswer = currSyncCmd->getInterfaceAnswer();
+            ifAlias = currSyncCmd->getInterfaceName();
             interface = profile->interfaces[ifAlias];
 
-            currentSyncCommand->refreshState();
+            currSyncCmd->refreshState();
 
             currentCommandIndex++;
 
@@ -586,63 +668,62 @@ void MainWindow::processSyncCommand()
 
             nextState = stateProcessCommand;
 
-            //      Comprueba si hay demora
-            if (currentSyncCommand->getEnabled() && (currentSyncCommand->getTimeDelay() > 0)) {
-                currentSyncCommand->setStatus(JigSyncCommand::delay);
+            //      Check if delay
+            if (currSyncCmd->getEnabled() && (currSyncCmd->getTimeDelay() > 0)) {
+                currSyncCmd->setStatus(JigSyncCommand::delay);
                 nextState = stateDelayCommand;
             }
 
             //      Check if command has to be executed
-            if (!currentSyncCommand->getEnabled()
-                || (!currentSyncCommand->runOnJump && globalCommandJump)) {
-                currentSyncCommand->setStatus(JigSyncCommand::jump);
+            if (!currSyncCmd->getEnabled() || (!currSyncCmd->runOnJump && (errorEvent || stopEvent))) {
+                currSyncCmd->setStatus(JigSyncCommand::jump);
                 stateMachineTimerInterval = 10;
                 nextState = stateReadCommand;
             }
             break;
         case stateDelayCommand:
-            QThread::msleep(static_cast<unsigned long>(currentSyncCommand->getTimeDelay()));
+            QThread::msleep(static_cast<unsigned long>(currSyncCmd->getTimeDelay()));
             nextState = stateProcessCommand;
             break;
         case stateProcessCommand:
             runingCommand = true;
 
-            currentSyncCommand->setStatus(JigSyncCommand::running);
+            currSyncCmd->setStatus(JigSyncCommand::running);
             outputInfo("*****************************************************", normal);
-            if (!globalCommandJump) {
+            if (!(errorEvent || stopEvent)) {
                 outputInfo(QString("Ejecutando el comando %1:%2")
                                .arg(currentCommandIndex)
-                               .arg(currentSyncCommand->getId()),
+                               .arg(currSyncCmd->getId()),
                            normal);
             } else {
                 outputInfo(QString("Ejecutando el comando obligatorio %1:%2")
                                .arg(currentCommandIndex)
-                               .arg(currentSyncCommand->getId()),
+                               .arg(currSyncCmd->getId()),
                            normal);
             }
 
             //      Show Notice
-            if (!currentSyncCommand->messageNotice.isEmpty())
-                QMessageBox::information(this, "Atención", currentSyncCommand->messageNotice);
+            if (!currSyncCmd->messageNotice.isEmpty())
+                QMessageBox::information(this, "Atención", currSyncCmd->messageNotice);
 
             switch (interface->getType()) {
-            case JigInterface::none:
+            case JigAbstractInterface::none:
                 errors++;
                 outputInfo("No está configurada la interfaz", error);
-                globalCommandJump = true;
+                errorEvent = true;
                 nextState = stateReadCommand;
                 break;
-            case JigInterface::app:
+            case JigAbstractInterface::app:
                 nextState = stateApp;
                 break;
-            case JigInterface::plugin:
+            case JigAbstractInterface::plugin:
                 nextState = statePlugin;
                 break;
-            case JigInterface::usb:
+            case JigAbstractInterface::usb:
                 if (ifCommand == "program")
                     nextState = stateIpeProgram;
                 break;
-            case JigInterface::tty:
+            case JigAbstractInterface::tty:
                 if (ifCommand == "open")
                     nextState = stateInterfaceOpen;
 
@@ -658,8 +739,8 @@ void MainWindow::processSyncCommand()
                 break;
             }
 
-            if (currentSyncCommand->getUseMeanFormula()) {
-                formula = currentSyncCommand->getMeanFormula();
+            if (currSyncCmd->getUseMeanFormula()) {
+                formula = currSyncCmd->getMeanFormula();
 
                 if (formula.contains('%')) {
                     if (formula.contains("%x")) {
@@ -705,9 +786,9 @@ void MainWindow::processSyncCommand()
 
                 debugInfo(evaluator.toString(), normal);
 
-                currentSyncCommand->setMeasureParameters(evaluator.toNumber(),
-                                                         currentSyncCommand->deviation,
-                                                         currentSyncCommand->offset);
+                currSyncCmd->setMeasureParameters(evaluator.toNumber(),
+                                                  currSyncCmd->deviation,
+                                                  currSyncCmd->offset);
             }
 
             retryState = nextState;
@@ -715,13 +796,13 @@ void MainWindow::processSyncCommand()
 
             timerTimeOutDone = false;
             timerTimeOut.stop();
-            timerTimeOut.start(currentSyncCommand->getTimeOut());
+            timerTimeOut.start(currSyncCmd->getTimeOut());
             break;
         case stateApp:
             if (ifCommand == "dialog") {
                 r = QMessageBox::information(this,
                                              "Advertencia",
-                                             currentSyncCommand->getInterfaceArguments(),
+                                             currSyncCmd->getInterfaceArguments(),
                                              QMessageBox::Ok | QMessageBox::No);
 
                 if (r == QMessageBox::Ok) {
@@ -735,7 +816,7 @@ void MainWindow::processSyncCommand()
             }
 
             if (ifCommand == "deadtime") {
-                QThread::msleep(static_cast<unsigned long>(currentSyncCommand->getTimeOut()));
+                QThread::msleep(static_cast<unsigned long>(currSyncCmd->getTimeOut()));
 
                 lastCommandResult = stepOk;
                 nextState = stateProcessOutput;
@@ -743,11 +824,11 @@ void MainWindow::processSyncCommand()
             }
 
             if (ifCommand == "loraserverapi") {
-                if (currentSyncCommand->getTxCommand().contains("create")) {
+                if (currSyncCmd->getTxCommand().contains("create")) {
                     device->createDevice(
-                        currentSyncCommand
+                        currSyncCmd
                             ->getTxArguments()); //  Esto debería salir de aqui y enviarlo a otro proceso
-                    device->setKeys(currentSyncCommand->getTxArguments(),
+                    device->setKeys(currSyncCmd->getTxArguments(),
                                     "00000000000000000000000000000000",
                                     "abfae4d33b42258bcf742cc51178f1d4");
                     lastCommandResult = stepOk;
@@ -758,7 +839,7 @@ void MainWindow::processSyncCommand()
             }
 
             if (ifCommand == "end") {
-                globalCommandJump = true;
+                errorEvent = true;
                 nextState = stateReadCommand;
                 break;
             }
@@ -818,14 +899,14 @@ void MainWindow::processSyncCommand()
             } else {
                 outputInfo("Estado del programador desconocido...", error);
                 errors++;
-                globalCommandJump = true;
+                errorEvent = true;
                 lastCommandResult = stepErr;
                 nextState = stateProcessOutput;
             }
             if (!ipeApp.isOpen()) {
                 debugInfo("IPE error", normal);
                 errors++;
-                globalCommandJump = true;
+                errorEvent = true;
                 lastCommandResult = stepErr;
                 nextState = stateProcessOutput;
             }
@@ -871,6 +952,7 @@ void MainWindow::processSyncCommand()
                 lastCommandResult = stepOk;
                 nextState = stateProcessOutput;
             } else if (ans == -1) {
+                errorEvent = true;
                 lastCommandResult = stepErr;
                 nextState = stateProcessOutput;
             }
@@ -885,11 +967,11 @@ void MainWindow::processSyncCommand()
         case stateInterfaceClose:
             if (interface->isOpen()) {
                 interface->close();
-            } else if (globalCommandJump) {
+            } else if (errorEvent) {
                 outputInfo(QString("Salta el comando por que la interfaz %1 no está abierta.")
-                               .arg(currentSyncCommand->getInterfaceName()),
+                               .arg(currSyncCmd->getInterfaceName()),
                            infoType::normal);
-                currentSyncCommand->setStatus(JigSyncCommand::jump);
+                currSyncCmd->setStatus(JigSyncCommand::jump);
                 nextState = stateReadCommand;
                 break;
             }
@@ -908,51 +990,51 @@ void MainWindow::processSyncCommand()
             interface->reset();
 
             if (!interface->isOpen()) {
-                if (globalCommandJump) {
+                if (errorEvent) {
                     outputInfo(QString("Salta el comando por que la interfaz %1 no está abierta.")
-                                   .arg(currentSyncCommand->getInterfaceName()),
+                                   .arg(currSyncCmd->getInterfaceName()),
                                infoType::normal);
-                    currentSyncCommand->setStatus(JigSyncCommand::jump);
+                    currSyncCmd->setStatus(JigSyncCommand::jump);
                     nextState = stateReadCommand;
                     break;
                 }
 
                 outputInfo(QString("No esta abierta la interface %1")
-                               .arg(currentSyncCommand->getInterfaceName()),
+                               .arg(currSyncCmd->getInterfaceName()),
                            infoType::error);
-                globalCommandJump = true;
+                errorEvent = true;
                 lastCommandResult = stepErr;
                 nextState = stateProcessOutput;
                 break;
             }
 
-            if (!currentSyncCommand->getTxCommand().isEmpty()) {
-                buildCommand = buildFrameToSend(currentSyncCommand);
+            if (!currSyncCmd->getTxCommand().isEmpty()) {
+                buildCommand = currSyncCmd->buildFrameToSend(&wildcard);
 
                 commandToSend = buildCommand;
 
-                if (currentSyncCommand->getIsCrc16()) {
+                if (currSyncCmd->getIsCrc16()) {
                 }
 
-                if (currentSyncCommand->getIsCr()) {
+                if (currSyncCmd->getIsCr()) {
                     commandToSend.append('\r');
                 }
 
-                if (currentSyncCommand->getIsLf()) {
+                if (currSyncCmd->getIsLf()) {
                     commandToSend.append('\n');
                 }
 
                 interface->write(commandToSend);
 
-                if (!currentSyncCommand->getOnOk().isEmpty()
-                    || !currentSyncCommand->getOnError().isEmpty()
-                    || !currentSyncCommand->getRxCommand().isEmpty()) {
+                if (!currSyncCmd->getOnOk().isEmpty()
+                    || !currSyncCmd->getOnError().isEmpty()
+                    || !currSyncCmd->getRxCommand().isEmpty()) {
 
-                    debugInfo("TX:" + commandToSend + "; WAIT:" + currentSyncCommand->getOnOk(), normal);
+                    debugInfo("TX:" + commandToSend + "; WAIT:" + currSyncCmd->getOnOk(), normal);
 
                     outputInfo(QString("Tx: %1 [espero: %2]")
                                    .arg(QString::fromLatin1(buildCommand))
-                                   .arg(currentSyncCommand->getOnOk()),
+                                   .arg(currSyncCmd->getOnOk()),
                                normal);
                     nextState = stateUsartRead;
                 } else {
@@ -961,7 +1043,7 @@ void MainWindow::processSyncCommand()
                     nextState = stateProcessOutput;
                 }
 
-            } else if (!currentSyncCommand->getRxCommand().isEmpty()) {
+            } else if (!currSyncCmd->getRxCommand().isEmpty()) {
                 nextState = stateUsartRead;
             } else {
                 nextState = stateUsartRead;
@@ -977,54 +1059,54 @@ void MainWindow::processSyncCommand()
 
             if (!interface->isOpen()) {
                 outputInfo(QString("No esta abierta la interface %1")
-                               .arg(currentSyncCommand->getInterfaceName()),
+                               .arg(currSyncCmd->getInterfaceName()),
                            infoType::error);
-                globalCommandJump = true;
+                errorEvent = true;
                 lastCommandResult = stepErr;
                 nextState = stateProcessOutput;
                 break;
             }
 
             if (interface->dataReady()) {
-                if (currentSyncCommand->isTxCommand()) {
-                    if (!currentSyncCommand->getOnOk().isEmpty()
-                        || !currentSyncCommand->getOnError().isEmpty()) {
+                if (currSyncCmd->isTxCommand()) {
+                    if (!currSyncCmd->getOnOk().isEmpty()
+                        || !currSyncCmd->getOnError().isEmpty()) {
                         if (interface->rxBuffer.contains(
-                                QString("\r" + currentSyncCommand->getOnOk() + "\r\n").toLatin1())
+                                QString("\r" + currSyncCmd->getOnOk() + "\r\n").toLatin1())
                             || interface->rxBuffer.contains(
-                                QString("\r\n" + currentSyncCommand->getOnOk() + "\r\n").toLatin1())) {
+                                QString("\r\n" + currSyncCmd->getOnOk() + "\r\n").toLatin1())) {
                             dataOk = true;
                             onOk = true;
                         }
 
                         if (interface->rxBuffer.contains(
-                                QString("\r" + currentSyncCommand->getOnError() + "\r\n").toLatin1())
+                                QString("\r" + currSyncCmd->getOnError() + "\r\n").toLatin1())
                             || interface->rxBuffer.contains(
-                                QString("\r\n" + currentSyncCommand->getOnError() + "\r\n").toLatin1())) {
+                                QString("\r\n" + currSyncCmd->getOnError() + "\r\n").toLatin1())) {
                             dataOk = true;
                         }
-                    } else if (!currentSyncCommand->getRxCommand().isEmpty()) {
+                    } else if (!currSyncCmd->getRxCommand().isEmpty()) {
                         if (interface->rxBuffer.contains(
-                                QString(currentSyncCommand->getRxCommand()).toLatin1())) {
+                                QString(currSyncCmd->getRxCommand()).toLatin1())) {
                             dataOk = true;
                             onOk = true;
                         }
                     }
-                } else if (currentSyncCommand->isRxCommand()) {
+                } else if (currSyncCmd->isRxCommand()) {
                     if (interface->rxBuffer.contains(
-                            QString(currentSyncCommand->getRxCommand()).toLatin1())) {
+                            QString(currSyncCmd->getRxCommand()).toLatin1())) {
                         dataOk = true;
                         onOk = true;
                     }
                 } else {
                     if (interface->rxBuffer.contains(
-                            QString(currentSyncCommand->getOnOk() + "\r\n").toLatin1())) {
+                            QString(currSyncCmd->getOnOk() + "\r\n").toLatin1())) {
                         dataOk = true;
                         onOk = true;
                     }
 
                     if (interface->rxBuffer.contains(
-                            QString(currentSyncCommand->getOnError() + "\r\n").toLatin1())) {
+                            QString(currSyncCmd->getOnError() + "\r\n").toLatin1())) {
                         dataOk = true;
                     }
                 }
@@ -1058,7 +1140,18 @@ void MainWindow::processSyncCommand()
                     outputInfo("Se descartó la información recibida, posiblemente el tiempo de "
                                "espera fue muy corto.",
                                error);
-                    globalCommandJump = true;
+                    errorEvent = true;
+                    lastCommandResult = stepErr;
+                    nextState = stateProcessOutput; //      Fall out error
+                    break;
+                }
+
+                if (dataResponseList.indexOf("N/A") >= 0) {
+                    errors++;
+                    debugInfo("Errores" + QString::number(errors), error);
+                    outputInfo("Se descartó el comando, ya que se recibió un N/A como repuesta.",
+                               error);
+                    errorEvent = true;
                     lastCommandResult = stepErr;
                     nextState = stateProcessOutput; //      Fall out error
                     break;
@@ -1066,11 +1159,11 @@ void MainWindow::processSyncCommand()
 
                 debugInfo("RX: " + dataResponseList.join(' '),normal);
 
-                if (currentSyncCommand->isRxCommand()) {
+                if (currSyncCmd->isRxCommand()) {
                     int index = 0;
                     answerIndex = -1;
                     foreach (QString str, dataResponseList) {
-                        if (str.contains(currentSyncCommand->getRxCommand())) {
+                        if (str.contains(currSyncCmd->getRxCommand())) {
                             answerIndex = index;
                             break;
                         }
@@ -1078,9 +1171,9 @@ void MainWindow::processSyncCommand()
                     }
                 } else {
                     if (onOk) {
-                        answerIndex = dataResponseList.indexOf(currentSyncCommand->getOnOk());
+                        answerIndex = dataResponseList.indexOf(currSyncCmd->getOnOk());
                     } else {
-                        answerIndex = dataResponseList.indexOf(currentSyncCommand->getOnError());
+                        answerIndex = dataResponseList.indexOf(currSyncCmd->getOnError());
                     }
                 }
 
@@ -1095,7 +1188,7 @@ void MainWindow::processSyncCommand()
                     break;
                 }
 
-                if (currentSyncCommand->isTxCommand()) {
+                if (currSyncCmd->isTxCommand()) {
                     cmdEchoIndex = dataResponseList.indexOf(buildCommand);
 
                     if ((cmdEchoIndex >= 0) && (answerIndex > cmdEchoIndex)) {
@@ -1104,25 +1197,25 @@ void MainWindow::processSyncCommand()
                     }
                 }
 
-                if (currentSyncCommand->isRxCommand()) {
+                if (currSyncCmd->isRxCommand()) {
                     dataResponseList = answer.split(' ');
 
                     cmdEcho = dataResponseList.takeAt(0);
                     rxAnswers = dataResponseList.join(' ');
 
-                    if (currentSyncCommand->getRxCommand() == cmdEcho)
+                    if (currSyncCmd->getRxCommand() == cmdEcho)
                         lastCommandResult = stepOk;
                 }
 
-                if (currentSyncCommand->isRxAnswers()) {
+                if (currSyncCmd->isRxAnswers()) {
                     rxAnswersList = rxAnswers.split(' ');
                     rxAnswersList.removeAll("");
                     rxAnswers = rxAnswersList.join(' ');
 
                     debugInfo("Valid answer(s): " + rxAnswers, normal);
 
-                    if (currentSyncCommand->getRxAnswers().contains('%')) { //      Variable comodín
-                        wildcard[currentSyncCommand->getRxAnswers()] = rxAnswers.toLatin1();
+                    if (currSyncCmd->getRxAnswers().contains('%')) { //      Variable comodín
+                        wildcard[currSyncCmd->getRxAnswers()] = rxAnswers.toLatin1();
                         wildcard["%2db"] = rxAnswers.toLatin1();
                     }
 
@@ -1132,7 +1225,7 @@ void MainWindow::processSyncCommand()
                         QStringList rep;
                         QList<bool> errs;
 
-                        if(!currentSyncCommand->processAnswers(rxAnswersList, &wildcard, currentCommandIndex,&errs, &rep)){
+                        if(!currSyncCmd->processAnswers(rxAnswersList, &wildcard, currentCommandIndex,&errs, &rep, ui->dutPanelUi->activatedDuts())){
                             lastCommandResult = stepOk;
                         } else {
                             lastCommandResult = stepErr;
@@ -1149,18 +1242,18 @@ void MainWindow::processSyncCommand()
                     }
                 }
 
-                if (currentSyncCommand->isOnOk() && (currentSyncCommand->getOnOk() == answer)) {
+                if (currSyncCmd->isOnOk() && (currSyncCmd->getOnOk() == answer)) {
                     if (lastCommandResult != stepErr)
                         lastCommandResult = stepOk;
                 }
 
-                if (currentSyncCommand->isOnError() && (currentSyncCommand->getOnError() == answer)) {
+                if (currSyncCmd->isOnError() && (currSyncCmd->getOnError() == answer)) {
                     lastCommandResult = stepErr;
 
-                    if (currentSyncCommand->isRxAnswers() && !rxAnswers.isEmpty()) {
-                        if (currentSyncCommand->getRxAnswers().contains("%")) { //      Variable comodín
-                            if (currentSyncCommand->getRxAnswers() == "%measure") {
-                                currentSyncCommand->setMeasureError(rxAnswers);
+                    if (currSyncCmd->isRxAnswers() && !rxAnswers.isEmpty()) {
+                        if (currSyncCmd->getRxAnswers().contains("%")) { //      Variable comodín
+                            if (currSyncCmd->getRxAnswers() == "%measure") {
+                                currSyncCmd->setMeasureError(rxAnswers);
                             }
                         }
                     }
@@ -1169,31 +1262,33 @@ void MainWindow::processSyncCommand()
             }
             break;
         case stateProcessOutput:
-
             switch (lastCommandResult) {
             case stepNone:
+                nextState = stateReadCommand;
                 break;
             case stepOk: //  OK
-                if (!currentSyncCommand->messageOnOk.isEmpty())
-                    outputInfo(currentSyncCommand->messageOnOk, ok);
+                if (!currSyncCmd->messageOnOk.isEmpty())
+                    outputInfo(currSyncCmd->messageOnOk, ok);
+
                 outputInfo("OK", infoType::ok);
-                currentSyncCommand->setStatus(JigSyncCommand::ok);
+                currSyncCmd->setStatus(JigSyncCommand::ok);
 
                 nextState = stateReadCommand;
                 break;
             case stepErr: //  ERROR
                 errors++;
 
-                if (!currentSyncCommand->messageOnError.isEmpty())
-                    outputInfo(currentSyncCommand->messageOnError, error);
+                if (!currSyncCmd->messageOnError.isEmpty())
+                    outputInfo(currSyncCmd->messageOnError, error);
+
                 outputInfo("ERROR", infoType::error);
-                currentSyncCommand->setStatus(JigSyncCommand::fail);
+                currSyncCmd->setStatus(JigSyncCommand::fail);
 
-                if (currentSyncCommand->end)
-                    globalCommandJump = true;
+                if (currSyncCmd->end)
+                    errorEvent = true;
 
-                reportFails << QString::number(currentCommandIndex) + ":" + currentSyncCommand->getId();
-                reportComment << currentSyncCommand->messageOnError;
+                reportFails << QString::number(currentCommandIndex) + ":" + currSyncCmd->getId();
+                reportComment << currSyncCmd->messageOnError;
                 reportMeasure << wildcard["%2db"];
 
                 nextState = stateReadCommand;
@@ -1205,9 +1300,9 @@ void MainWindow::processSyncCommand()
                     outputInfo("TIMEOUT", error);
                     ui->statusBar->showMessage("Error en la prueba");
 
-                    currentSyncCommand->setStatus(JigSyncCommand::fail);
+                    currSyncCmd->setStatus(JigSyncCommand::fail);
 
-                    globalCommandJump = true;
+                    errorEvent = true;
                     errors++;
 
                     for(int i = 0; i < profile->getPanelAmount(); i++){
@@ -1219,7 +1314,7 @@ void MainWindow::processSyncCommand()
                     outputInfo("Reintento...", normal);
                     timerTimeOutDone = false;
                     timerTimeOut.stop();
-                    timerTimeOut.start(currentSyncCommand->getTimeOut());
+                    timerTimeOut.start(currSyncCmd->getTimeOut());
 
                     nextState = retryState;
                 }
@@ -1235,9 +1330,9 @@ void MainWindow::processSyncCommand()
 
             debugInfo("Tiempo de la prueba" + QString::number(tiempoOperacion), normal);
 
-            foreach (JigInterface *interface, profile->interfaces) {
+            foreach (JigAbstractInterface *interface, profile->interfaces) {
                 if (interface) {
-                    if (interface->getType() == JigInterface::tty) {
+                    if (interface->getType() == JigAbstractInterface::tty) {
                         if (interface->isOpen()) {
                             interface->close();
                         }
@@ -1250,24 +1345,36 @@ void MainWindow::processSyncCommand()
                 }
             }
 
+            if (stopEvent){
+                QMessageBox::warning(this,
+                                     "Advertencia",
+                                     "El proceso de pruebas fue detenido por el operador");
+            }
+
             for(int i = 0; i < profile->getPanelAmount(); i++){
-                if(!dutList->at(i)->getError()){
-                    ui->dutSummaryUi->setDutStatus(i, 1);
-                    dutList->at(i)->putRegister("ok","ok","ok");
-                } else{
-                    ui->dutSummaryUi->setDutStatus(i, 2);
-                    dutList->at(i)->putRegister("fail","fail","fail");
+                Dut *dut = dutList->at(i);
+
+                if (errorEvent || stopEvent){
+                    ui->dutPanelUi->setDutStatus(i, Dut::jump);
+                } else if(dut->getActivated()){
+                    if(!dut->getError()){
+                        ui->dutPanelUi->setDutStatus(i, Dut::pass);
+                        dut->putRegister("ok","ok","ok");
+                    } else{
+                        ui->dutPanelUi->setDutStatus(i, Dut::nopass);
+                        dut->putRegister("fail","fail","fail");
+                    }
                 }
             }
 
             if (errors == 0) {
-                state = true;
+                errorTest = 0;
                 ui->statusBar->showMessage("PASA",10000);
                 reportFails << "ok";
                 reportComment << "ok";
                 reportMeasure << "ok";
             } else {
-                state = false;
+                errorTest = 1;
                 ui->statusBar->showMessage("NO PASA",10000);
 
                 if (reportFails.isEmpty())
@@ -1278,14 +1385,21 @@ void MainWindow::processSyncCommand()
                     reportMeasure << "fail";
             }
 
-            saveDatabaseData = true; //  Guarda los datos en la base de datos
+            if (!stopEvent){
+                saveDatabaseData = true; //  Guarda los datos en la base de datos
+            }
 
             ui->progressBar->setValue(100);
-            ui->pushButtonStart->setEnabled(true);
 
-            globalCommandJump = false;
+            ui->dutPanelUi->jumpFirstSerialNumber();
+
+            errorEvent = false;
+            stopEvent = false;
 
             nextState = stateIdle;
+
+            emit finished(errorTest);
+
             break;
         case stateError:
             ui->statusBar->showMessage("Desconecte el cable USB y reinicie");
@@ -1294,25 +1408,27 @@ void MainWindow::processSyncCommand()
 
         //      Update last state
         lastState = currentState;
-        if (nextState != stateInitApp)
-            currentState = nextState;
-    } while (globalCommandJump && !runingCommand);
+        currentState = nextState;
+
+    } while ((errorEvent || stopEvent) && !runingCommand);
 
     if (saveDatabaseData && !debugMode) {
         bool state = true;
-        foreach(DutInfoForm *dutInfo, *dutList){
-            state &= pushDatabaseRecord(dutInfo, tiempoOperacion);
+
+        foreach(Dut *dut, *dutList){
+            if(dut->getActivated()){
+                state &= pushDatabaseRecord(dut, tiempoOperacion);
+            }
+
+            dut->clearSerialNumber();
         }
 
         if (!state){
             QMessageBox::warning(this,
                                  "Advertencia",
                                  "No fue posible registrar la información en la base de datos, por "
-                                 "favor reinicie la aplicación y repita la prueba.");
-        }
-
-        for(int i = 0; i < profile->getPanelAmount(); i++){
-            dutList->at(i)->clearSerialNumber();
+                                 "favor reinicie la aplicación y repita la prueba, si el problema persiste "
+                                 "comuniquese con el administrador de TICs.");
         }
     }
 
@@ -1344,19 +1460,6 @@ void MainWindow::ipeAppWarning()
     }
 }
 
-void MainWindow::on_pbHex_clicked()
-{
-    QString path;
-    path = QFileDialog::getOpenFileName(this,
-                                        "Ruta del HEX",
-                                        QDir::homePath(),
-                                        "Archivos HEX (*.hex)");
-    if (!path.isEmpty()) {
-        profile->setFwPath(path);
-        ipeApp.setHexPath(profile->getFwPath());
-    }
-}
-
 void MainWindow::outputInfo(QString info, infoType type)
 {
     QString color;
@@ -1374,7 +1477,7 @@ void MainWindow::outputInfo(QString info, infoType type)
 
     QString text = QString("<font color =\"%1\">%2</font><br>").arg(color).arg(info);
 
-    ui->dockWidgetContents->setOutputMessage(text);
+    ui->messagesBox->setOutputMessage(text);
 }
 
 void MainWindow::debugInfo(QString info, MainWindow::infoType type)
@@ -1394,63 +1497,17 @@ void MainWindow::debugInfo(QString info, MainWindow::infoType type)
 
     QString text = QString("<font color =\"%1\">%2</font><br>").arg(color).arg(info);
 
-    ui->dockWidgetContents->setDebugMessage(text);
+    ui->messagesBox->setDebugMessage(text);
 }
 
 void MainWindow::on_pushButtonStart_clicked()
 {
-    if (profile->availableInterfaces.contains("pickit")){
-        JigInterfacePickit *pickit = static_cast<JigInterfacePickit *>(profile->interfaces["pickit"]);
-
-        if (pickit->getIpePath().isEmpty()) {
-            QMessageBox::warning(this, "Alerta", "Ruta del IPE no especificada");
-            return;
-        }
-
-        if (pickit->getBur().isEmpty()) {
-            QMessageBox::warning(this, "Alerta", "Numero de serie del programador no especificado");
-            return;
-        }
-        if (!QFile(pickit->getIpePath()).exists()) {
-            QMessageBox::warning(this, "Alerta", "La ruta de MPLAB X IPE es incorrecta");
-            return;
-        }
-    }
-
-    if (profile->getFwPath().isEmpty()) {
-        QMessageBox::warning(this, "Alerta", "Ruta del HEX no especificada");
-        return;
-    }
-    if (!ui->dutSummaryUi->isReady()) {
-        QMessageBox::warning(this, "Alerta", "Uno o más de los números de serie está incompleto o repetido");
-        return;
-    }
-    if (profile->syncCommands.size() == 0) {
-        QMessageBox::warning(this, "Alerta", "No se ha cargado un perfil de pruebas");
-        return;
-    }
-
-    outputInfo(QString("Iniciando pruebas del PCBA sn/%1").arg(serialNumber), normal);
-    debugInfo("Iniciando test", normal);
-    nextState = stateStart;
-
-    return;
+    ui->actionStart->trigger();
 }
 
 void MainWindow::on_pushButtonStop_clicked()
 {
-    if ((nextState != stateInitApp) && (nextState != stateCheckProfile)
-        && (nextState != stateIdle)) {
-        ipeApp.close();
-        errors++;
-        globalCommandJump = true;
-
-        reportFails.append("stop;");
-        reportComment.append("stop;");
-        reportMeasure.append("stop;");
-
-        nextState = stateReadCommand;
-    }
+    ui->actionStop->trigger();
 }
 
 void MainWindow::on_actionLoad_triggered()
@@ -1464,24 +1521,13 @@ void MainWindow::on_actionLoad_triggered()
                                         homePath,
                                         "Archivos json (*.json)");
 
-    ui->dockWidgetContents->clearOutputMessage();
+    ui->messagesBox->clearOutputMessage();
 
     //      Read
     if (path.isEmpty())
         return;
 
-    QFile configFile(path);
-
-    if (!configFile.open(QIODevice::ReadOnly)) {
-        qWarning("Couldn't open profile.");
-        return;
-    }
-
-    QByteArray data = configFile.readAll();
-
-    configFile.close();
-
-    res = profile->readProfile(data);
+    res = profile->readProfile(path);
 
     if (res < 0) {
         //      Error
@@ -1494,7 +1540,7 @@ void MainWindow::on_actionLoad_triggered()
     ui->actionEditDut->setEnabled(true);
 
     if(profile->availableInterfaces.contains("pickit")){
-        JigInterfacePickit *pickit = static_cast<JigInterfacePickit *>(profile->interfaces["pickit"]);
+        JigPickitInterface *pickit = static_cast<JigPickitInterface *>(profile->interfaces["pickit"]);
 
         ipeApp.setTargetName(pickit->getTarget());
         ipeApp.setPickitSerialNumber(pickit->getBur());
@@ -1502,6 +1548,10 @@ void MainWindow::on_actionLoad_triggered()
         ipeApp.setHexPath(profile->getFwPath());
 
         ipeApp.setMclrPinName(pickit->getMclrPinName());
+        ipeApp.setVccPinName(pickit->getVccPinName());
+        ipeApp.setGndPinName(pickit->getGndPinName());
+        ipeApp.setPgcPinName(pickit->getPgcPinName());
+        ipeApp.setPgdPinName(pickit->getPgdPinName());
     }
 
     QString productName = profile->getProductName();
@@ -1525,25 +1575,32 @@ void MainWindow::on_actionLoad_triggered()
     query.prepare("SELECT idProducto FROM produccionIDi.Producto WHERE ProductoCodigo = :code");
     query.bindValue(":code", productCode);
 
+    idProducto = 0;
     if (query.exec()) {
         debugInfo(query.executedQuery(), normal);
-        while (query.next())
+
+        if(query.next()){
             idProducto = query.value("idProducto").toInt();
+        } else {
+            QMessageBox::warning(this, "Advertencia", "El perfil cargado no tiene un producto asignado en la base de datos, se utilizará el identificador por defecto (0).");
+        }
     } else {
-        QMessageBox::warning(this, "Advertencia", "No fue posible conectarse con la base de datos.");
+        QMessageBox::warning(this, "Advertencia", "No fue posible conectarse con la base de datos, si el problema persiste "
+                                                  "comuniquese con el administrador de TICs.");
     }
 
     commandEditorDialog->setInterfaces(&profile->interfaces);
 
     ui->syncCommandListUi->show();
     ui->asyncCommandListUi->show();
-    ui->dutSummaryUi->show();
+    ui->dutPanelUi->show();
 
     profilePath = path;
     profileLoaded = true;
 
     //  Create DutInfo
     updateDutInfo();
+    ui->debugCtrlUi->setDutList(dutList);
 }
 
 void MainWindow::on_actionSave_triggered()
@@ -1551,18 +1608,11 @@ void MainWindow::on_actionSave_triggered()
     QByteArray data;
     int res;
 
-    res = profile->writeProfile(&data);
+    res = profile->writeProfile(profilePath);
 
     if (res < 0) {
         //      Error
     }
-
-    QFile saveFile(profilePath);
-
-    saveFile.open(QIODevice::ReadWrite);
-    saveFile.resize(0);
-    saveFile.write(data);
-    saveFile.close();
 }
 
 void MainWindow::on_actionEditInterface_triggered()
@@ -1611,6 +1661,8 @@ void MainWindow::on_actionDebug_triggered()
         login->show();
     } else {
         debugMode = false;
+        ui->actionDebugControl->setEnabled(false);
+        ui->debugCtrlUi->close();
         QMessageBox::information(this, "Aviso", "Modo Debug desactivado");
     }
 }
@@ -1629,8 +1681,8 @@ void MainWindow::on_actionShowCommandOptional_triggered()
 
 void MainWindow::on_actionShowDutInformation_triggered()
 {
-    ui->dutSummaryUi->show();
-    ui->dutSummaryUi->setFocus();
+    ui->dutPanelUi->show();
+    ui->dutPanelUi->setFocus();
 }
 
 void MainWindow::on_actionConsole_triggered()
@@ -1651,4 +1703,34 @@ void MainWindow::on_actionEditDut_triggered()
 void MainWindow::on_actionShowMessages_triggered()
 {
     ui->dockWidget->show();
+}
+
+void MainWindow::on_actionDebugControl_triggered()
+{
+    ui->debugCtrlUi->show();
+}
+
+void MainWindow::on_actionStart_triggered()
+{
+    if (!validateStart())
+        return;
+
+    outputInfo(QString("Iniciando pruebas del PCBA sn/%1").arg(serialNumber), normal);
+    debugInfo("Iniciando test", normal);
+
+    nextState = stateStart;
+}
+
+void MainWindow::on_actionStop_triggered()
+{
+    if ((nextState != stateCheckProfile) && (nextState != stateIdle)) {
+        ipeApp.close();
+        stopEvent = true;
+
+        reportFails.append("stop;");
+        reportComment.append("stop;");
+        reportMeasure.append("stop;");
+
+        nextState = stateReadCommand;
+    }
 }
